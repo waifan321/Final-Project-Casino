@@ -3,153 +3,114 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Adaptive Gambling Transparency — Prototype UI</title>
+  <title>Visualising Player Behaviour</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
-  <div class="app">
-
-    <!-- HEADER -->
+  <div class="page">
     <header class="topbar">
-      <div class="topbar__left">
-        <h1 class="title">Blackjack (Simulated)</h1>
-        <p class="subtitle">Educational prototype — no real money.</p>
+      <div class="brand">
+        <div class="brand__dot"></div>
+        <span class="brand__name">Behaviour Analytics</span>
       </div>
 
-      <div class="topbar__right">
-        <div class="chip">
-          <span class="chip__label">Session</span>
-          <span class="chip__value">#A12</span>
-        </div>
-        <div class="chip">
-          <span class="chip__label">Risk</span>
-          <span class="chip__value">0.42</span>
-        </div>
-      </div>
+      <nav class="nav">
+        <a href="#" class="nav__link">Home</a>
+        <a href="#" class="nav__link">Dashboard</a>
+        <a href="#" class="nav__link">About</a>
+      </nav>
     </header>
 
-    <!-- MAIN CONTENT -->
-    <main class="main">
+    <main class="hero">
+      <section class="hero__content">
+        <p class="eyebrow">Educational prototype</p>
+        <h1 class="hero__title">
+          Visualising Player Behaviour in Simulated Casino Games
+        </h1>
+        <p class="hero__subtitle">
+          A minimal, data-driven platform for exploring betting patterns,
+          decision trends, and session behaviour through interactive
+          visualisations.
+        </p>
 
-      <!-- VIEWPORT -->
-      <section class="viewport">
-        <div class="viewport__header">
-          <h2 class="section-title">GAME VIEWPORT</h2>
-          <div class="status">
-            <span class="status__dot"></span>
-            <span class="status__text">Running</span>
-          </div>
+        <div class="hero__actions">
+          <a href="#" class="btn btn--primary">Start Session</a>
+          <a href="#" class="btn btn--secondary">Explore Dashboard</a>
         </div>
 
-        <div class="table">
-          <div class="hand">
-            <div class="hand__label">Dealer</div>
-            <div class="cards">
-              <div class="card">?</div>
-              <div class="card">K♠</div>
-            </div>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="hand">
-            <div class="hand__label">Player</div>
-            <div class="cards">
-              <div class="card">7♦</div>
-              <div class="card">9♥</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="viewport__footer">
-          <div class="metric">
-            <span class="metric__label">Round</span>
-            <span class="metric__value">4</span>
-          </div>
-          <div class="metric">
-            <span class="metric__label">Bankroll (points)</span>
-            <span class="metric__value">950</span>
-          </div>
-          <div class="metric">
-            <span class="metric__label">Current Bet</span>
-            <span class="metric__value">50</span>
-          </div>
-        </div>
+        <p class="hero__note">
+          No real money. No real gambling. Built for analysis, transparency,
+          and experimentation.
+        </p>
       </section>
 
-      <!-- RIGHT PANEL -->
-      <aside class="sidepanel">
+      <aside class="hero__panel">
+        <div class="panel">
+          <div class="panel__header">
+            <span class="panel__title">Session Preview</span>
+            <span class="panel__tag">Live</span>
+          </div>
 
-        <section class="panel">
-          <h2 class="section-title">ADAPTIVE FEEDBACK</h2>
-          <p class="panel__text">
-            No prompt triggered yet. Play a few rounds and the system will display feedback when behaviour signals change.
-          </p>
-
-          <div class="signal">
-            <div class="signal__row">
-              <span class="signal__name">Bet escalation</span>
-              <span class="signal__badge">LOW</span>
+          <div class="metric-list">
+            <div class="metric">
+              <span class="metric__label">Average Bet</span>
+              <span class="metric__value">£42</span>
             </div>
-            <div class="signal__row">
-              <span class="signal__name">Loss streak</span>
-              <span class="signal__badge">MED</span>
+            <div class="metric">
+              <span class="metric__label">Volatility</span>
+              <span class="metric__value">Medium</span>
             </div>
-            <div class="signal__row">
-              <span class="signal__name">Session length</span>
-              <span class="signal__badge">LOW</span>
+            <div class="metric">
+              <span class="metric__label">Risk Trend</span>
+              <span class="metric__value">Rising</span>
             </div>
           </div>
-        </section>
 
-        <section class="panel">
-          <h2 class="section-title">TRANSPARENCY REPORT</h2>
-          <p class="panel__text">
-            End the session to view a summary of detected patterns and why the system responded.
-          </p>
-
-          <div class="actions">
-            <button class="btn btn--primary" type="button">View Report</button>
-            <button class="btn" type="button">Export (PDF)</button>
+          <div class="mini-chart">
+            <div class="mini-chart__bar"></div>
+            <div class="mini-chart__bar mini-chart__bar--tall"></div>
+            <div class="mini-chart__bar"></div>
+            <div class="mini-chart__bar mini-chart__bar--mid"></div>
+            <div class="mini-chart__bar mini-chart__bar--tall"></div>
+            <div class="mini-chart__bar mini-chart__bar--mid"></div>
+            <div class="mini-chart__bar"></div>
           </div>
-        </section>
-
+        </div>
       </aside>
-
     </main>
 
-    <!-- BOTTOM CONTROL BAR -->
-    <footer class="bottombar">
-      <section class="controls">
-        <h2 class="section-title">BETTING CONTROLS</h2>
+    <section class="features">
+      <article class="card">
+        <h2 class="card__title">Session Tracking</h2>
+        <p class="card__text">
+          Record bets, decisions, outcomes, and session behaviour in a
+          structured format for later analysis.
+        </p>
+      </article>
 
-        <div class="controls__row">
-          <div class="field">
-            <label class="field__label" for="bet">Bet amount</label>
-            <input class="field__input" id="bet" type="number" value="50" min="0" step="10" />
-          </div>
+      <article class="card">
+        <h2 class="card__title">Behaviour Analysis</h2>
+        <p class="card__text">
+          Identify trends such as escalation, loss streaks, and volatility
+          using simple behavioural metrics and scoring.
+        </p>
+      </article>
 
-          <div class="field">
-            <label class="field__label">Actions</label>
-            <div class="btnrow">
-              <button class="btn" type="button">Place Bet</button>
-              <button class="btn" type="button">Hit</button>
-              <button class="btn" type="button">Stand</button>
-            </div>
-          </div>
+      <article class="card">
+        <h2 class="card__title">Interactive Visuals</h2>
+        <p class="card__text">
+          Present the data through clean dashboards and charts that make
+          behaviour patterns easier to interpret.
+        </p>
+      </article>
+    </section>
 
-          <div class="field field--right">
-            <label class="field__label">Session</label>
-            <div class="btnrow">
-              <button class="btn btn--danger" type="button">End Session</button>
-              <button class="btn" type="button">Restart</button>
-            </div>
-          </div>
-        </div>
-      </section>
+    <footer class="footer">
+      <p>
+        Final Year Project prototype — focused on data representation,
+        behavioural analysis, and visual clarity.
+      </p>
     </footer>
-
   </div>
 </body>
 </html>
