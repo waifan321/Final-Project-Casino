@@ -1,11 +1,10 @@
-import { useNavigate } from "react-router-dom";
-import "./styles.css";
+import "./home.css";
 
 export default function HomePage() {
-  const navigate = useNavigate();
-
   return (
     <div className="page">
+
+      {/* Topbar */}
       <header className="topbar">
         <div className="brand">
           <div className="brand__dot"></div>
@@ -13,57 +12,112 @@ export default function HomePage() {
         </div>
 
         <nav className="nav">
-          <span className="nav__link nav__link--active">Home</span>
-          <button 
-            className="nav__link" 
-            onClick={() => navigate("/session")}
-            style={{ background: "none", border: "none", cursor: "pointer" }}
-          >
-            Dashboard
-          </button>
-          <a href="#" className="nav__link">About</a>
+          <a href="#" className="nav__link">Home</a>
+          <a href="#" className="nav__link">Dashboard</a>
+          <a href="#" className="nav__link">Session</a>
         </nav>
       </header>
 
+      {/* Hero Section */}
       <main className="hero">
         <section className="hero__content">
-          <p className="eyebrow">Educational prototype</p>
+          <p className="eyebrow">Final Year Project</p>
+
           <h1 className="hero__title">
             Visualising Player Behaviour in Simulated Casino Games
           </h1>
+
           <p className="hero__subtitle">
-            A minimal, data-driven platform for exploring betting patterns,
-            decision trends, and session behaviour through interactive
-            visualisations.
+            An interactive platform for analysing betting patterns, session behaviour,
+            and decision-making trends through clean data visualisations.
           </p>
 
           <div className="hero__actions">
-            <button 
-              onClick={() => navigate("/session")}
-              className="btn btn--primary"
-            >
+            <button className="btn btn--primary">
               Start Session
             </button>
-            <a href="#" className="btn btn--secondary">Explore Dashboard</a>
+
+            <button className="btn btn--secondary">
+              Explore Dashboard
+            </button>
           </div>
 
           <p className="hero__note">
-            No real money. No real gambling. Built for analysis, transparency,
-            and experimentation.
+            No real gambling. Designed for data analysis and behavioural insight.
           </p>
         </section>
 
+        {/* Right panel preview */}
         <aside className="hero__panel">
           <div className="panel">
             <div className="panel__header">
-              <span className="panel__title">Session Preview</span>
+              <span className="panel__title">Behaviour Snapshot</span>
+              <span className="panel__tag">Live</span>
             </div>
-            <div className="panel__body">
-              <p>Start a session to begin playing and tracking your betting patterns.</p>
+
+            <div className="metric-list">
+              <div className="metric">
+                <span className="metric__label">Avg Bet</span>
+                <span className="metric__value">£42</span>
+              </div>
+
+              <div className="metric">
+                <span className="metric__label">Risk Score</span>
+                <span className="metric__value">0.38</span>
+              </div>
+
+              <div className="metric">
+                <span className="metric__label">Trend</span>
+                <span className="metric__value">Rising</span>
+              </div>
+            </div>
+
+            {/* Simple fake chart */}
+            <div className="mini-chart">
+              <div className="mini-chart__bar"></div>
+              <div className="mini-chart__bar mini-chart__bar--mid"></div>
+              <div className="mini-chart__bar"></div>
+              <div className="mini-chart__bar mini-chart__bar--tall"></div>
+              <div className="mini-chart__bar mini-chart__bar--mid"></div>
+              <div className="mini-chart__bar"></div>
             </div>
           </div>
         </aside>
       </main>
+
+      {/* Features */}
+      <section className="features">
+
+        <div className="card">
+          <h2 className="card__title">Session Tracking</h2>
+          <p className="card__text">
+            Capture betting decisions, outcomes, and session activity in structured form.
+          </p>
+        </div>
+
+        <div className="card">
+          <h2 className="card__title">Behaviour Analysis</h2>
+          <p className="card__text">
+            Identify patterns such as escalation, streaks, and volatility.
+          </p>
+        </div>
+
+        <div className="card">
+          <h2 className="card__title">Data Visualisation</h2>
+          <p className="card__text">
+            Explore interactive charts that reveal behaviour trends clearly.
+          </p>
+        </div>
+
+      </section>
+
+      {/* Footer */}
+      <footer className="footer">
+        <p>
+          Educational prototype focused on data representation and behavioural insights.
+        </p>
+      </footer>
+
     </div>
   );
 }

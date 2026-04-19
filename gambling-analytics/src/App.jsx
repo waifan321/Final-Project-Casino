@@ -1,14 +1,6 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import HomePage from "./HomePage";
-import SessionPage from "./SessionPage";
+import HomePage from "./HomePage.jsx";
+// import SessionPage from "./SessionPage.jsx";
 
 export default function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/session" element={<SessionPage />} />
-      </Routes>
-    </BrowserRouter>
-  );
+  return <HomePage />;
 }

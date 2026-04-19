@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 function randomCard() {
   const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
@@ -26,7 +25,6 @@ function handValue(cards) {
 }
 
 export default function SessionPage() {
-  const navigate = useNavigate();
   const [sessionId] = useState("S-0142");
   const [round, setRound] = useState(1);
   const [bet, setBet] = useState(50);
@@ -39,9 +37,7 @@ export default function SessionPage() {
   const [lossStreak, setLossStreak] = useState(0);
   const [riskScore, setRiskScore] = useState(0.18);
   const [feedback, setFeedback] = useState("No behaviour change detected yet.");
-  const [log, setLog] = useState([
-    { round: 1, text: "Session started" }
-  ]);
+  const [log, setLog] = useState([{ round: 1, text: "Session started" }]);
 
   const playerTotal = useMemo(() => handValue(playerCards), [playerCards]);
   const visibleDealerValue = useMemo(
@@ -75,10 +71,7 @@ export default function SessionPage() {
   }
 
   function placeBet() {
-    setLog((prev) => [
-      { round, text: `Bet placed: £${bet}` },
-      ...prev
-    ]);
+    setLog((prev) => [{ round, text: `Bet placed: £${bet}` }, ...prev]);
   }
 
   function hit() {
@@ -90,15 +83,9 @@ export default function SessionPage() {
       const outcome = "Loss";
       setBankroll((prev) => prev - bet);
       updateMetrics(bet, outcome);
-      setLog((prev) => [
-        { round, text: `Hit → bust at ${total}. ${outcome}` },
-        ...prev
-      ]);
+      setLog((prev) => [{ round, text: `Hit → bust at ${total}. ${outcome}` }, ...prev]);
     } else {
-      setLog((prev) => [
-        { round, text: `Hit → player total now ${total}` },
-        ...prev
-      ]);
+      setLog((prev) => [{ round, text: `Hit → player total now ${total}` }, ...prev]);
     }
   }
 
@@ -127,7 +114,7 @@ export default function SessionPage() {
     updateMetrics(bet, outcome);
     setLog((prev) => [
       { round, text: `Stand → dealer ${dealerTotal}, player ${player}. ${outcome}` },
-      ...prev
+      ...prev,
     ]);
   }
 
@@ -135,22 +122,15 @@ export default function SessionPage() {
     setRound((r) => r + 1);
     setDealerCards(["?", randomCard()]);
     setPlayerCards([randomCard(), randomCard()]);
-    setLog((prev) => [
-      { round: round + 1, text: "New round started" },
-      ...prev
-    ]);
+    setLog((prev) => [{ round: round + 1, text: "New round started" }, ...prev]);
   }
 
   function endSession() {
     setFeedback("Session ended. Ready to generate behaviour dashboard.");
-    setLog((prev) => [
-      { round, text: "Session ended" },
-      ...prev
-    ]);
+    setLog((prev) => [{ round, text: "Session ended" }, ...prev]);
   }
 
-  const volatility =
-    bet >= 100 ? "High" : bet >= 50 ? "Medium" : "Low";
+  const volatility = bet >= 100 ? "High" : bet >= 50 ? "Medium" : "Low";
 
   return (
     <div className="page">
@@ -162,18 +142,6 @@ export default function SessionPage() {
             <h1 className="brand__title">Blackjack Behaviour Tracking</h1>
           </div>
         </div>
-
-        <nav className="nav">
-          <button 
-            className="nav__link" 
-            onClick={() => navigate("/")}
-            style={{ background: "none", border: "none", cursor: "pointer" }}
-          >
-            Home
-          </button>
-          <span className="nav__link nav__link--active">Session</span>
-          <a href="#" className="nav__link">About</a>
-        </nav>
 
         <div className="topbar__meta">
           <div className="meta-card">
@@ -297,7 +265,11 @@ export default function SessionPage() {
             <div className="feedback-box">
               <p className="feedback-box__text">{feedback}</p>
               <span className="feedback-box__tag">
-                {riskScore >= 0.6 ? "High change detected" : riskScore >= 0.35 ? "Moderate change detected" : "Low change detected"}
+                {riskScore >= 0.6
+                  ? "High change detected"
+                  : riskScore >= 0.35
+                  ? "Moderate change detected"
+                  : "Low change detected"}
               </span>
             </div>
           </div>
