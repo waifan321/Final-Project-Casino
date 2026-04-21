@@ -1,5 +1,5 @@
 import HomePage from "./HomePage.jsx";
-// import SessionPage from "./SessionPage.jsx";
+import "./styles.css";
 
 export default function App() {
   return <HomePage />;

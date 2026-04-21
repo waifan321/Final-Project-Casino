@@ -133,72 +133,72 @@ export default function SessionPage() {
   const volatility = bet >= 100 ? "High" : bet >= 50 ? "Medium" : "Low";
 
   return (
-    <div className="page">
-      <header className="topbar">
-        <div className="brand">
-          <div className="brand__dot" />
+    <div className="session-page">
+      <header className="session-topbar">
+        <div className="session-brand">
+          <div className="session-brand__dot"></div>
           <div>
-            <p className="brand__eyebrow">Live Session</p>
-            <h1 className="brand__title">Blackjack Behaviour Tracking</h1>
+            <p className="session-brand__eyebrow">Live Session</p>
+            <h1 className="session-brand__title">Blackjack Behaviour Tracking</h1>
           </div>
         </div>
 
-        <div className="topbar__meta">
-          <div className="meta-card">
-            <span className="meta-card__label">Session ID</span>
-            <span className="meta-card__value">{sessionId}</span>
+        <div className="session-topbar__meta">
+          <div className="session-meta-card">
+            <span className="session-meta-card__label">Session ID</span>
+            <span className="session-meta-card__value">{sessionId}</span>
           </div>
-          <div className="meta-card">
-            <span className="meta-card__label">Round</span>
-            <span className="meta-card__value">{String(round).padStart(2, "0")}</span>
+          <div className="session-meta-card">
+            <span className="session-meta-card__label">Round</span>
+            <span className="session-meta-card__value">{String(round).padStart(2, "0")}</span>
           </div>
-          <div className="meta-card">
-            <span className="meta-card__label">Game</span>
-            <span className="meta-card__value">Blackjack</span>
+          <div className="session-meta-card">
+            <span className="session-meta-card__label">Game</span>
+            <span className="session-meta-card__value">Blackjack</span>
           </div>
         </div>
       </header>
 
-      <main className="layout">
-        <section className="game-area">
-          <div className="panel">
-            <div className="panel__header">
-              <h2 className="panel__title">Game Table</h2>
-              <span className="status">Session Active</span>
+      <main className="session-layout">
+        <section className="session-game-area">
+          <div className="session-panel">
+            <div className="session-panel__header">
+              <h2 className="session-panel__title">Game Table</h2>
+              <span className="session-status">Session Active</span>
             </div>
 
-            <div className="table">
-              <div className="hand-block">
-                <p className="hand-block__label">Dealer Hand</p>
-                <div className="cards">
+            <div className="session-table">
+              <div className="session-hand-block">
+                <p className="session-hand-block__label">Dealer Hand</p>
+                <div className="session-cards">
                   {dealerCards.map((card, i) => (
-                    <div className="card" key={`dealer-${i}`}>{card}</div>
+                    <div className="session-card" key={`dealer-${i}`}>{card}</div>
                   ))}
                 </div>
-                <p className="hand-block__value">Visible Value: {visibleDealerValue}</p>
+                <p className="session-hand-block__value">Visible Value: {visibleDealerValue}</p>
               </div>
 
-              <div className="table__divider" />
+              <div className="session-table__divider"></div>
 
-              <div className="hand-block">
-                <p className="hand-block__label">Player Hand</p>
-                <div className="cards">
+              <div className="session-hand-block">
+                <p className="session-hand-block__label">Player Hand</p>
+                <div className="session-cards">
                   {playerCards.map((card, i) => (
-                    <div className="card" key={`player-${i}`}>{card}</div>
+                    <div className="session-card" key={`player-${i}`}>{card}</div>
                   ))}
                 </div>
-                <p className="hand-block__value">Total Value: {playerTotal}</p>
+                <p className="session-hand-block__value">Total Value: {playerTotal}</p>
               </div>
             </div>
           </div>
 
-          <div className="panel">
-            <div className="panel__header">
-              <h2 className="panel__title">Session Controls</h2>
+          <div className="session-panel">
+            <div className="session-panel__header">
+              <h2 className="session-panel__title">Session Controls</h2>
             </div>
 
-            <div className="controls-grid">
-              <div className="control-group">
+            <div className="session-controls-grid">
+              <div className="session-control-group">
                 <label htmlFor="betAmount">Bet Amount</label>
                 <input
                   id="betAmount"
@@ -209,62 +209,62 @@ export default function SessionPage() {
                 />
               </div>
 
-              <div className="control-group control-group--wide">
+              <div className="session-control-group session-control-group--wide">
                 <label>Actions</label>
-                <div className="button-row">
-                  <button className="btn btn--primary" onClick={placeBet}>Place Bet</button>
-                  <button className="btn" onClick={hit}>Hit</button>
-                  <button className="btn" onClick={stand}>Stand</button>
-                  <button className="btn" onClick={newRound}>New Round</button>
+                <div className="session-button-row">
+                  <button className="session-btn session-btn--primary" onClick={placeBet}>Place Bet</button>
+                  <button className="session-btn" onClick={hit}>Hit</button>
+                  <button className="session-btn" onClick={stand}>Stand</button>
+                  <button className="session-btn" onClick={newRound}>New Round</button>
                 </div>
               </div>
             </div>
 
-            <div className="control-footer">
-              <button className="btn btn--danger" onClick={endSession}>End Session</button>
-              <button className="btn btn--ghost">View Session Summary</button>
+            <div className="session-control-footer">
+              <button className="session-btn session-btn--danger" onClick={endSession}>End Session</button>
+              <button className="session-btn session-btn--ghost">View Session Summary</button>
             </div>
           </div>
         </section>
 
-        <aside className="sidebar">
-          <div className="panel">
-            <div className="panel__header">
-              <h2 className="panel__title">Behaviour Signals</h2>
+        <aside className="session-sidebar">
+          <div className="session-panel">
+            <div className="session-panel__header">
+              <h2 className="session-panel__title">Behaviour Signals</h2>
             </div>
 
-            <div className="metric-list">
-              <div className="metric">
-                <span className="metric__label">Current Risk Score</span>
-                <span className="metric__value">{riskScore}</span>
+            <div className="session-metric-list">
+              <div className="session-metric">
+                <span className="session-metric__label">Current Risk Score</span>
+                <span className="session-metric__value">{riskScore}</span>
               </div>
-              <div className="metric">
-                <span className="metric__label">Average Bet</span>
-                <span className="metric__value">£{avgBet || 0}</span>
+              <div className="session-metric">
+                <span className="session-metric__label">Average Bet</span>
+                <span className="session-metric__value">£{avgBet || 0}</span>
               </div>
-              <div className="metric">
-                <span className="metric__label">Loss Streak</span>
-                <span className="metric__value">{lossStreak}</span>
+              <div className="session-metric">
+                <span className="session-metric__label">Loss Streak</span>
+                <span className="session-metric__value">{lossStreak}</span>
               </div>
-              <div className="metric">
-                <span className="metric__label">Bet Volatility</span>
-                <span className="metric__value">{volatility}</span>
+              <div className="session-metric">
+                <span className="session-metric__label">Bet Volatility</span>
+                <span className="session-metric__value">{volatility}</span>
               </div>
-              <div className="metric">
-                <span className="metric__label">Bankroll</span>
-                <span className="metric__value">£{bankroll}</span>
+              <div className="session-metric">
+                <span className="session-metric__label">Bankroll</span>
+                <span className="session-metric__value">£{bankroll}</span>
               </div>
             </div>
           </div>
 
-          <div className="panel">
-            <div className="panel__header">
-              <h2 className="panel__title">Adaptive Feedback</h2>
+          <div className="session-panel">
+            <div className="session-panel__header">
+              <h2 className="session-panel__title">Adaptive Feedback</h2>
             </div>
 
-            <div className="feedback-box">
-              <p className="feedback-box__text">{feedback}</p>
-              <span className="feedback-box__tag">
+            <div className="session-feedback-box">
+              <p className="session-feedback-box__text">{feedback}</p>
+              <span className="session-feedback-box__tag">
                 {riskScore >= 0.6
                   ? "High change detected"
                   : riskScore >= 0.35
@@ -274,16 +274,16 @@ export default function SessionPage() {
             </div>
           </div>
 
-          <div className="panel">
-            <div className="panel__header">
-              <h2 className="panel__title">Recent Session Log</h2>
+          <div className="session-panel">
+            <div className="session-panel__header">
+              <h2 className="session-panel__title">Recent Session Log</h2>
             </div>
 
-            <div className="log-list">
+            <div className="session-log-list">
               {log.map((item, index) => (
-                <div className="log-item" key={`${item.round}-${index}`}>
-                  <span className="log-item__round">R{item.round}</span>
-                  <span className="log-item__text">{item.text}</span>
+                <div className="session-log-item" key={`${item.round}-${index}`}>
+                  <span className="session-log-item__round">R{item.round}</span>
+                  <span className="session-log-item__text">{item.text}</span>
                 </div>
               ))}
             </div>
