@@ -1,4 +1,4 @@
-export default function HomePage() {
+export default function HomePage({ onGoLogin, onGoSignup }) {
   return (
     <div className="home-page">
       <header className="home-topbar">
@@ -8,9 +8,8 @@ export default function HomePage() {
         </div>
 
         <nav className="home-nav">
-          <a href="#" className="home-nav__link">Home</a>
-          <a href="#" className="home-nav__link">Dashboard</a>
-          <a href="#" className="home-nav__link">Session</a>
+          <button className="home-nav__link" onClick={onGoLogin}>Login</button>
+          <button className="home-nav__link" onClick={onGoSignup}>Sign Up</button>
         </nav>
       </header>
 
@@ -23,51 +22,47 @@ export default function HomePage() {
           </h1>
 
           <p className="home-hero__subtitle">
-            An interactive platform for exploring betting patterns, decision trends,
-            and session behaviour through clear and minimal data visualisation.
+            This application lets users explore betting behaviour, session trends,
+            and decision-making through a simplified blackjack simulator and a
+            personal analytics dashboard.
           </p>
 
           <div className="home-hero__actions">
-            <button className="home-btn home-btn--primary">Start Session</button>
-            <button className="home-btn home-btn--secondary">Explore Dashboard</button>
+            <button className="home-btn home-btn--primary" onClick={onGoSignup}>
+              Get Started
+            </button>
+            <button className="home-btn home-btn--secondary" onClick={onGoLogin}>
+              Login
+            </button>
           </div>
 
           <p className="home-hero__note">
-            No real money. No real gambling. Built for behavioural analysis and data representation.
+            No real money. Built for behavioural analysis, transparency, and data representation.
           </p>
         </section>
 
         <aside className="home-hero__panel">
           <div className="home-panel">
             <div className="home-panel__header">
-              <span className="home-panel__title">Behaviour Snapshot</span>
-              <span className="home-panel__tag">Live</span>
+              <span className="home-panel__title">What the app does</span>
+              <span className="home-panel__tag">Overview</span>
             </div>
 
             <div className="home-metric-list">
               <div className="home-metric">
-                <span className="home-metric__label">Average Bet</span>
-                <span className="home-metric__value">£42</span>
+                <span className="home-metric__label">Blackjack Simulator</span>
+                <span className="home-metric__value">Play</span>
               </div>
 
               <div className="home-metric">
-                <span className="home-metric__label">Risk Score</span>
-                <span className="home-metric__value">0.38</span>
+                <span className="home-metric__label">Personal Stats</span>
+                <span className="home-metric__value">Track</span>
               </div>
 
               <div className="home-metric">
-                <span className="home-metric__label">Trend</span>
-                <span className="home-metric__value">Rising</span>
+                <span className="home-metric__label">Behaviour Dashboard</span>
+                <span className="home-metric__value">Visualise</span>
               </div>
-            </div>
-
-            <div className="home-mini-chart">
-              <div className="home-mini-chart__bar"></div>
-              <div className="home-mini-chart__bar home-mini-chart__bar--mid"></div>
-              <div className="home-mini-chart__bar"></div>
-              <div className="home-mini-chart__bar home-mini-chart__bar--tall"></div>
-              <div className="home-mini-chart__bar home-mini-chart__bar--mid"></div>
-              <div className="home-mini-chart__bar"></div>
             </div>
           </div>
         </aside>
@@ -75,31 +70,32 @@ export default function HomePage() {
 
       <section className="home-features">
         <div className="home-card">
-          <h2 className="home-card__title">Session Tracking</h2>
+          <h2 className="home-card__title">About the App</h2>
           <p className="home-card__text">
-            Capture bets, decisions, outcomes, and session activity in a structured format.
+            The app is designed to represent and analyse gambling-style decision data
+            in a safe, educational environment.
           </p>
         </div>
 
         <div className="home-card">
-          <h2 className="home-card__title">Behaviour Analysis</h2>
+          <h2 className="home-card__title">Personal Dashboard</h2>
           <p className="home-card__text">
-            Identify patterns such as escalation, volatility, and loss streaks.
+            Logged-in users can access their own performance history, risk trends,
+            and session summaries.
           </p>
         </div>
 
         <div className="home-card">
-          <h2 className="home-card__title">Interactive Visuals</h2>
+          <h2 className="home-card__title">Simulator Access</h2>
           <p className="home-card__text">
-            Present behavioural trends through dashboards and clean visual summaries.
+            Once authenticated, users can play the blackjack simulator and generate
+            new session data for analysis.
           </p>
         </div>
       </section>
 
       <footer className="home-footer">
-        <p>
-          Educational prototype focused on data representation, analysis, and transparency.
-        </p>
+        <p>Educational prototype focused on data representation and behavioural insight.</p>
       </footer>
     </div>
   );

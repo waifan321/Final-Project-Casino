@@ -21,10 +21,11 @@ function handValue(cards) {
     total -= 10;
     aces -= 1;
   }
+
   return total;
 }
 
-export default function SessionPage() {
+export default function SessionPage({ onBackToDashboard, onLogout }) {
   const [sessionId] = useState("S-0142");
   const [round, setRound] = useState(1);
   const [bet, setBet] = useState(50);
@@ -79,6 +80,7 @@ export default function SessionPage() {
     setPlayerCards(nextCards);
 
     const total = handValue(nextCards);
+
     if (total > 21) {
       const outcome = "Loss";
       setBankroll((prev) => prev - bet);
@@ -103,6 +105,7 @@ export default function SessionPage() {
     const player = handValue(playerCards);
 
     let outcome = "Draw";
+
     if (dealerTotal > 21 || player > dealerTotal) {
       outcome = "Win";
       setBankroll((prev) => prev + bet);
@@ -119,10 +122,11 @@ export default function SessionPage() {
   }
 
   function newRound() {
-    setRound((r) => r + 1);
+    const nextRound = round + 1;
+    setRound(nextRound);
     setDealerCards(["?", randomCard()]);
     setPlayerCards([randomCard(), randomCard()]);
-    setLog((prev) => [{ round: round + 1, text: "New round started" }, ...prev]);
+    setLog((prev) => [{ round: nextRound, text: "New round started" }, ...prev]);
   }
 
   function endSession() {
@@ -148,14 +152,24 @@ export default function SessionPage() {
             <span className="session-meta-card__label">Session ID</span>
             <span className="session-meta-card__value">{sessionId}</span>
           </div>
+
           <div className="session-meta-card">
             <span className="session-meta-card__label">Round</span>
             <span className="session-meta-card__value">{String(round).padStart(2, "0")}</span>
           </div>
+
           <div className="session-meta-card">
             <span className="session-meta-card__label">Game</span>
             <span className="session-meta-card__value">Blackjack</span>
           </div>
+
+          <button className="session-btn session-btn--ghost" onClick={onBackToDashboard}>
+            Back to Dashboard
+          </button>
+
+          <button className="session-btn session-btn--danger" onClick={onLogout}>
+            Logout
+          </button>
         </div>
       </header>
 
@@ -172,7 +186,9 @@ export default function SessionPage() {
                 <p className="session-hand-block__label">Dealer Hand</p>
                 <div className="session-cards">
                   {dealerCards.map((card, i) => (
-                    <div className="session-card" key={`dealer-${i}`}>{card}</div>
+                    <div className="session-card" key={`dealer-${i}`}>
+                      {card}
+                    </div>
                   ))}
                 </div>
                 <p className="session-hand-block__value">Visible Value: {visibleDealerValue}</p>
@@ -184,7 +200,9 @@ export default function SessionPage() {
                 <p className="session-hand-block__label">Player Hand</p>
                 <div className="session-cards">
                   {playerCards.map((card, i) => (
-                    <div className="session-card" key={`player-${i}`}>{card}</div>
+                    <div className="session-card" key={`player-${i}`}>
+                      {card}
+                    </div>
                   ))}
                 </div>
                 <p className="session-hand-block__value">Total Value: {playerTotal}</p>
@@ -212,17 +230,29 @@ export default function SessionPage() {
               <div className="session-control-group session-control-group--wide">
                 <label>Actions</label>
                 <div className="session-button-row">
-                  <button className="session-btn session-btn--primary" onClick={placeBet}>Place Bet</button>
-                  <button className="session-btn" onClick={hit}>Hit</button>
-                  <button className="session-btn" onClick={stand}>Stand</button>
-                  <button className="session-btn" onClick={newRound}>New Round</button>
+                  <button className="session-btn session-btn--primary" onClick={placeBet}>
+                    Place Bet
+                  </button>
+                  <button className="session-btn" onClick={hit}>
+                    Hit
+                  </button>
+                  <button className="session-btn" onClick={stand}>
+                    Stand
+                  </button>
+                  <button className="session-btn" onClick={newRound}>
+                    New Round
+                  </button>
                 </div>
               </div>
             </div>
 
             <div className="session-control-footer">
-              <button className="session-btn session-btn--danger" onClick={endSession}>End Session</button>
-              <button className="session-btn session-btn--ghost">View Session Summary</button>
+              <button className="session-btn session-btn--danger" onClick={endSession}>
+                End Session
+              </button>
+              <button className="session-btn session-btn--ghost">
+                View Session Summary
+              </button>
             </div>
           </div>
         </section>
@@ -238,18 +268,22 @@ export default function SessionPage() {
                 <span className="session-metric__label">Current Risk Score</span>
                 <span className="session-metric__value">{riskScore}</span>
               </div>
+
               <div className="session-metric">
                 <span className="session-metric__label">Average Bet</span>
                 <span className="session-metric__value">£{avgBet || 0}</span>
               </div>
+
               <div className="session-metric">
                 <span className="session-metric__label">Loss Streak</span>
                 <span className="session-metric__value">{lossStreak}</span>
               </div>
+
               <div className="session-metric">
                 <span className="session-metric__label">Bet Volatility</span>
                 <span className="session-metric__value">{volatility}</span>
               </div>
+
               <div className="session-metric">
                 <span className="session-metric__label">Bankroll</span>
                 <span className="session-metric__value">£{bankroll}</span>
