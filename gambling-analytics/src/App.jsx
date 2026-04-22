@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import HomePage from "./HomePage.jsx";
 import LoginPage from "./LoginPage.jsx";
 import SignupPage from "./SignupPage.jsx";
@@ -23,47 +24,62 @@ export default function App() {
   if (!user) {
     if (page === "login") {
       return (
-        <LoginPage
-          onLogin={handleLogin}
-          onBack={() => setPage("home")}
-          onGoSignup={() => setPage("signup")}
-        />
+        <>
+          <LoginPage
+            onLogin={handleLogin}
+            onBack={() => setPage("home")}
+            onGoSignup={() => setPage("signup")}
+          />
+          <Analytics />
+        </>
       );
     }
 
     if (page === "signup") {
       return (
-        <SignupPage
-          onSignup={handleLogin}
-          onBack={() => setPage("home")}
-          onGoLogin={() => setPage("login")}
-        />
+        <>
+          <SignupPage
+            onSignup={handleLogin}
+            onBack={() => setPage("home")}
+            onGoLogin={() => setPage("login")}
+          />
+          <Analytics />
+        </>
       );
     }
 
     return (
-      <HomePage
-        onGoLogin={() => setPage("login")}
-        onGoSignup={() => setPage("signup")}
-      />
+      <>
+        <HomePage
+          onGoLogin={() => setPage("login")}
+          onGoSignup={() => setPage("signup")}
+        />
+        <Analytics />
+      </>
     );
   }
 
   if (page === "simulator") {
     return (
-      <SessionPage
-        user={user}
-        onBackToDashboard={() => setPage("dashboard")}
-        onLogout={handleLogout}
-      />
+      <>
+        <SessionPage
+          user={user}
+          onBackToDashboard={() => setPage("dashboard")}
+          onLogout={handleLogout}
+        />
+        <Analytics />
+      </>
     );
   }
 
   return (
-    <DashboardPage
-      user={user}
-      onOpenSimulator={() => setPage("simulator")}
-      onLogout={handleLogout}
-    />
+    <>
+      <DashboardPage
+        user={user}
+        onOpenSimulator={() => setPage("simulator")}
+        onLogout={handleLogout}
+      />
+      <Analytics />
+    </>
   );
 }
