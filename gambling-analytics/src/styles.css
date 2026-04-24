@@ -907,7 +907,7 @@ body {
 }
 
 /* =========================
-   SeSSION MESSAGES
+   SESSION MESSAGES
 ========================= */
 
 .session-message {
@@ -921,4 +921,43 @@ body {
   background: #232428;
   color: var(--muted);
   border: 1px dashed var(--line);
+}
+
+/* =========================
+   LEADERBOARD
+========================= */
+
+.leaderboard-list {
+  display: grid;
+  gap: 10px;
+}
+
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 50px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.leaderboard-rank {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.leaderboard-name {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.leaderboard-profit {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.dashboard-muted {
+  color: var(--muted);
 }

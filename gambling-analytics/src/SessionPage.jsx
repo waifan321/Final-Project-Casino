@@ -9,12 +9,9 @@ function randomCard() {
 
 function cardValue(card) {
   if (!card || card === "?") return 0;
-
   const rank = card.slice(0, -1);
-
   if (["J", "Q", "K"].includes(rank)) return 10;
   if (rank === "A") return 11;
-
   return Number(rank);
 }
 
@@ -58,8 +55,6 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
   const [roundEnded, setRoundEnded] = useState(false);
   const [dealerResolving, setDealerResolving] = useState(false);
 
-  const [message, setMessage] = useState("Place a bet to begin the round.");
-
   const [dealerCards, setDealerCards] = useState([]);
   const [hiddenDealerCard, setHiddenDealerCard] = useState(null);
   const [playerCards, setPlayerCards] = useState([]);
@@ -68,6 +63,7 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
   const [lossStreak, setLossStreak] = useState(0);
   const [riskScore, setRiskScore] = useState(0.18);
   const [feedback, setFeedback] = useState("No behaviour change detected yet.");
+  const [message, setMessage] = useState("Place a bet to begin the round.");
   const [log, setLog] = useState([{ round: 1, text: "Session started" }]);
 
   const [saving, setSaving] = useState(false);
@@ -92,7 +88,6 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
     setLossStreak(nextLossStreak);
 
     let score = 0.1;
-
     if (avgBet > 0 && nextBet > avgBet) score += 0.18;
     if (nextLossStreak >= 2) score += 0.24;
     if (nextBet >= 100) score += 0.15;
@@ -197,7 +192,7 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
     setLog((prev) => [
       {
         round,
-        text: `Round ended → Player ${playerTotalFinal}, Dealer ${dealerTotal}. ${payoutText}`,
+        text: `Round ended → Player ${playerTotalFinal}, Dealer ${dealerTotal}. ${outcome}. ${payoutText}`,
       },
       ...prev,
     ]);
@@ -295,6 +290,8 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
     setFeedback("Session ended. Saving session data...");
 
     try {
+      const sessionProfit = bankroll - 1000;
+
       const sessionPayload = {
         user_id: user.id,
         game_type: "blackjack",
@@ -305,10 +302,7 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
         session_log: log,
       };
 
-      const { error: sessionError } = await supabase
-        .from("sessions")
-        .insert(sessionPayload);
-
+      const { error: sessionError } = await supabase.from("sessions").insert(sessionPayload);
       if (sessionError) throw sessionError;
 
       const newSessionsPlayed = (user.sessions_played || 0) + 1;
@@ -329,6 +323,7 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
           sessions_played: newSessionsPlayed,
           avg_bet: newAvgBet,
           risk_score: riskScore,
+          total_profit: (user.total_profit || 0) + sessionProfit,
         })
         .eq("id", user.id);
 
@@ -336,6 +331,7 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
 
       setFeedback("Session saved successfully.");
       setSaveMessage("Session data saved and profile updated.");
+      onBackToDashboard();
     } catch (err) {
       console.error("Failed to save session:", err);
       setFeedback("Session ended, but saving failed.");
@@ -486,19 +482,12 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
 
             <div className="session-control-footer">
               {roundEnded && (
-                <button
-                  className="session-btn session-btn--primary"
-                  onClick={startNextRound}
-                >
+                <button className="session-btn session-btn--primary" onClick={startNextRound}>
                   Start Next Round
                 </button>
               )}
 
-              <button
-                className="session-btn session-btn--danger"
-                onClick={endSession}
-                disabled={saving}
-              >
+              <button className="session-btn session-btn--danger" onClick={endSession} disabled={saving}>
                 {saving ? "Saving..." : "End Session"}
               </button>
             </div>
