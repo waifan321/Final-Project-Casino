@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { supabase } from "./lib/supabase";
 
 function randomCard() {
   const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
@@ -7,15 +8,19 @@ function randomCard() {
 }
 
 function cardValue(card) {
+  if (!card || card === "?") return 0;
+
   const rank = card.slice(0, -1);
+
   if (["J", "Q", "K"].includes(rank)) return 10;
   if (rank === "A") return 11;
+
   return Number(rank);
 }
 
 function handValue(cards) {
-  let total = cards.reduce((sum, c) => sum + cardValue(c), 0);
-  let aces = cards.filter((c) => c.startsWith("A")).length;
+  let total = cards.reduce((sum, card) => sum + cardValue(card), 0);
+  let aces = cards.filter((card) => card.startsWith("A")).length;
 
   while (total > 21 && aces > 0) {
     total -= 10;
@@ -25,36 +30,70 @@ function handValue(cards) {
   return total;
 }
 
-export default function SessionPage({ onBackToDashboard, onLogout }) {
-  const [sessionId] = useState("S-0142");
+function isBlackjack(cards) {
+  return cards.length === 2 && handValue(cards) === 21;
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function createStartingHands() {
+  return {
+    dealer: ["?", randomCard()],
+    hiddenDealerCard: randomCard(),
+    player: [randomCard(), randomCard()],
+  };
+}
+
+export default function SessionPage({ user, onBackToDashboard, onLogout }) {
+  const [sessionId] = useState(`S-${Math.floor(Math.random() * 9000 + 1000)}`);
+
   const [round, setRound] = useState(1);
-  const [bet, setBet] = useState(50);
   const [bankroll, setBankroll] = useState(1000);
+  const [bet, setBet] = useState(50);
+  const [activeBet, setActiveBet] = useState(0);
 
-  const [dealerCards, setDealerCards] = useState(["?", randomCard()]);
-  const [playerCards, setPlayerCards] = useState([randomCard(), randomCard()]);
+  const [roundActive, setRoundActive] = useState(false);
+  const [roundEnded, setRoundEnded] = useState(false);
+  const [dealerResolving, setDealerResolving] = useState(false);
 
-  const [avgBet, setAvgBet] = useState(0);
+  const [message, setMessage] = useState("Place a bet to begin the round.");
+
+  const [dealerCards, setDealerCards] = useState([]);
+  const [hiddenDealerCard, setHiddenDealerCard] = useState(null);
+  const [playerCards, setPlayerCards] = useState([]);
+
+  const [betsPlaced, setBetsPlaced] = useState([]);
   const [lossStreak, setLossStreak] = useState(0);
   const [riskScore, setRiskScore] = useState(0.18);
   const [feedback, setFeedback] = useState("No behaviour change detected yet.");
   const [log, setLog] = useState([{ round: 1, text: "Session started" }]);
 
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
+
   const playerTotal = useMemo(() => handValue(playerCards), [playerCards]);
-  const visibleDealerValue = useMemo(
-    () => (dealerCards[1] === "?" ? 0 : cardValue(dealerCards[1])),
-    [dealerCards]
-  );
+
+  const visibleDealerValue = useMemo(() => {
+    if (dealerCards.length === 0) return 0;
+    return handValue(dealerCards.filter((card) => card !== "?"));
+  }, [dealerCards]);
+
+  const avgBet =
+    betsPlaced.length > 0
+      ? Math.round(betsPlaced.reduce((sum, value) => sum + value, 0) / betsPlaced.length)
+      : 0;
+
+  const volatility = activeBet >= 100 ? "High" : activeBet >= 50 ? "Medium" : "Low";
 
   function updateMetrics(nextBet, outcome) {
-    const nextAvg = avgBet === 0 ? nextBet : Math.round((avgBet + nextBet) / 2);
-    setAvgBet(nextAvg);
-
     const nextLossStreak = outcome === "Loss" ? lossStreak + 1 : 0;
     setLossStreak(nextLossStreak);
 
     let score = 0.1;
-    if (nextBet > nextAvg) score += 0.18;
+
+    if (avgBet > 0 && nextBet > avgBet) score += 0.18;
     if (nextLossStreak >= 2) score += 0.24;
     if (nextBet >= 100) score += 0.15;
     if (round >= 5) score += 0.12;
@@ -71,70 +110,240 @@ export default function SessionPage({ onBackToDashboard, onLogout }) {
     }
   }
 
+  function startNextRound() {
+    setRound((prev) => prev + 1);
+    setDealerCards([]);
+    setHiddenDealerCard(null);
+    setPlayerCards([]);
+    setActiveBet(0);
+    setRoundActive(false);
+    setRoundEnded(false);
+    setDealerResolving(false);
+    setMessage("Place a bet to begin the next round.");
+    setSaveMessage("");
+  }
+
   function placeBet() {
-    setLog((prev) => [{ round, text: `Bet placed: £${bet}` }, ...prev]);
+    const betValue = Number(bet);
+
+    if (!betValue || betValue <= 0) {
+      setMessage("Please enter a valid bet amount.");
+      return;
+    }
+
+    if (betValue > bankroll) {
+      setMessage("You cannot bet more than your current bankroll.");
+      return;
+    }
+
+    const hands = createStartingHands();
+
+    setActiveBet(betValue);
+    setBetsPlaced((prev) => [...prev, betValue]);
+
+    setDealerCards(hands.dealer);
+    setHiddenDealerCard(hands.hiddenDealerCard);
+    setPlayerCards(hands.player);
+
+    setRoundActive(true);
+    setRoundEnded(false);
+    setMessage("Cards dealt. Choose Hit, Stand, or Double.");
+    setSaveMessage("");
+
+    setLog((prev) => [{ round, text: `Bet placed: £${betValue}` }, ...prev]);
+
+    if (isBlackjack(hands.player)) {
+      const fullDealerHand = [hands.hiddenDealerCard, hands.dealer[1]];
+      setDealerCards(fullDealerHand);
+      finishRound("Win", fullDealerHand, hands.player, betValue);
+    }
+  }
+
+  function finishRound(outcome, finalDealerCards, finalPlayerCards, finalBet = activeBet) {
+    setRoundActive(false);
+    setRoundEnded(true);
+    setDealerResolving(false);
+
+    const playerBlackjack = isBlackjack(finalPlayerCards);
+    const dealerTotal = handValue(finalDealerCards);
+    const playerTotalFinal = handValue(finalPlayerCards);
+
+    let bankrollChange = 0;
+    let payoutText = "";
+
+    if (outcome === "Win") {
+      if (playerBlackjack) {
+        bankrollChange = finalBet * 1.5;
+        payoutText = "Blackjack payout: 1.5x bet";
+      } else {
+        bankrollChange = finalBet;
+        payoutText = "Standard win payout: 1x bet";
+      }
+    } else if (outcome === "Loss") {
+      bankrollChange = -finalBet;
+      payoutText = "Loss: bet deducted";
+    } else {
+      bankrollChange = 0;
+      payoutText = "Draw: bet returned";
+    }
+
+    setBankroll((prev) => prev + bankrollChange);
+    updateMetrics(finalBet, outcome);
+
+    setMessage(
+      `Round ended: ${outcome}. Player ${playerTotalFinal}, Dealer ${dealerTotal}. ${payoutText}. Click "Start Next Round".`
+    );
+
+    setLog((prev) => [
+      {
+        round,
+        text: `Round ended → Player ${playerTotalFinal}, Dealer ${dealerTotal}. ${payoutText}`,
+      },
+      ...prev,
+    ]);
+  }
+
+  async function revealDealerAndResolve(currentPlayerCards, finalBet = activeBet) {
+    setDealerResolving(true);
+    setMessage("Dealer reveals hidden card...");
+
+    let fullDealerHand = [hiddenDealerCard, dealerCards[1]];
+    setDealerCards(fullDealerHand);
+
+    await wait(700);
+
+    while (handValue(fullDealerHand) < 17) {
+      setMessage("Dealer draws a card...");
+      const nextCard = randomCard();
+      fullDealerHand = [...fullDealerHand, nextCard];
+      setDealerCards(fullDealerHand);
+      await wait(700);
+    }
+
+    const dealerTotal = handValue(fullDealerHand);
+    const playerTotalFinal = handValue(currentPlayerCards);
+
+    let outcome = "Draw";
+
+    if (playerTotalFinal > 21) {
+      outcome = "Loss";
+    } else if (dealerTotal > 21 || playerTotalFinal > dealerTotal) {
+      outcome = "Win";
+    } else if (playerTotalFinal < dealerTotal) {
+      outcome = "Loss";
+    }
+
+    finishRound(outcome, fullDealerHand, currentPlayerCards, finalBet);
   }
 
   function hit() {
+    if (!roundActive || dealerResolving) return;
+
     const nextCards = [...playerCards, randomCard()];
     setPlayerCards(nextCards);
 
     const total = handValue(nextCards);
 
     if (total > 21) {
-      const outcome = "Loss";
-      setBankroll((prev) => prev - bet);
-      updateMetrics(bet, outcome);
-      setLog((prev) => [{ round, text: `Hit → bust at ${total}. ${outcome}` }, ...prev]);
-    } else {
-      setLog((prev) => [{ round, text: `Hit → player total now ${total}` }, ...prev]);
+      const fullDealerHand = [hiddenDealerCard, dealerCards[1]];
+      setDealerCards(fullDealerHand);
+      finishRound("Loss", fullDealerHand, nextCards);
+      return;
     }
+
+    setMessage(`Hit taken. Player total is now ${total}.`);
+    setLog((prev) => [{ round, text: `Hit → player total ${total}` }, ...prev]);
   }
 
-  function stand() {
-    const revealedDealer = [randomCard(), dealerCards[1]];
-    let dealerHand = [...revealedDealer];
+  async function stand() {
+    if (!roundActive || dealerResolving) return;
+    await revealDealerAndResolve(playerCards);
+  }
 
-    while (handValue(dealerHand) < 17) {
-      dealerHand.push(randomCard());
+  async function doubleDown() {
+    if (!roundActive || dealerResolving) return;
+
+    const doubledBet = activeBet * 2;
+
+    if (doubledBet > bankroll) {
+      setMessage("You do not have enough bankroll to double.");
+      return;
     }
 
-    setDealerCards(dealerHand);
+    const nextCards = [...playerCards, randomCard()];
+    setPlayerCards(nextCards);
+    setActiveBet(doubledBet);
 
-    const dealerTotal = handValue(dealerHand);
-    const player = handValue(playerCards);
-
-    let outcome = "Draw";
-
-    if (dealerTotal > 21 || player > dealerTotal) {
-      outcome = "Win";
-      setBankroll((prev) => prev + bet);
-    } else if (player < dealerTotal) {
-      outcome = "Loss";
-      setBankroll((prev) => prev - bet);
-    }
-
-    updateMetrics(bet, outcome);
     setLog((prev) => [
-      { round, text: `Stand → dealer ${dealerTotal}, player ${player}. ${outcome}` },
+      { round, text: `Double down → bet increased to £${doubledBet}, drew one card` },
       ...prev,
     ]);
+
+    if (handValue(nextCards) > 21) {
+      const fullDealerHand = [hiddenDealerCard, dealerCards[1]];
+      setDealerCards(fullDealerHand);
+      finishRound("Loss", fullDealerHand, nextCards, doubledBet);
+      return;
+    }
+
+    await revealDealerAndResolve(nextCards, doubledBet);
   }
 
-  function newRound() {
-    const nextRound = round + 1;
-    setRound(nextRound);
-    setDealerCards(["?", randomCard()]);
-    setPlayerCards([randomCard(), randomCard()]);
-    setLog((prev) => [{ round: nextRound, text: "New round started" }, ...prev]);
-  }
+  async function endSession() {
+    setSaving(true);
+    setSaveMessage("");
+    setFeedback("Session ended. Saving session data...");
 
-  function endSession() {
-    setFeedback("Session ended. Ready to generate behaviour dashboard.");
-    setLog((prev) => [{ round, text: "Session ended" }, ...prev]);
-  }
+    try {
+      const sessionPayload = {
+        user_id: user.id,
+        game_type: "blackjack",
+        rounds_played: round,
+        avg_bet: avgBet || 0,
+        final_bankroll: bankroll,
+        risk_score: riskScore,
+        session_log: log,
+      };
 
-  const volatility = bet >= 100 ? "High" : bet >= 50 ? "Medium" : "Low";
+      const { error: sessionError } = await supabase
+        .from("sessions")
+        .insert(sessionPayload);
+
+      if (sessionError) throw sessionError;
+
+      const newSessionsPlayed = (user.sessions_played || 0) + 1;
+
+      const newAvgBet =
+        user.sessions_played && user.sessions_played > 0
+          ? Number(
+              (
+                ((user.avg_bet || 0) * user.sessions_played + (avgBet || 0)) /
+                newSessionsPlayed
+              ).toFixed(2)
+            )
+          : avgBet || 0;
+
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          sessions_played: newSessionsPlayed,
+          avg_bet: newAvgBet,
+          risk_score: riskScore,
+        })
+        .eq("id", user.id);
+
+      if (profileError) throw profileError;
+
+      setFeedback("Session saved successfully.");
+      setSaveMessage("Session data saved and profile updated.");
+    } catch (err) {
+      console.error("Failed to save session:", err);
+      setFeedback("Session ended, but saving failed.");
+      setSaveMessage(err.message || "Failed to save session.");
+    }
+
+    setSaving(false);
+  }
 
   return (
     <div className="session-page">
@@ -159,8 +368,8 @@ export default function SessionPage({ onBackToDashboard, onLogout }) {
           </div>
 
           <div className="session-meta-card">
-            <span className="session-meta-card__label">Game</span>
-            <span className="session-meta-card__value">Blackjack</span>
+            <span className="session-meta-card__label">Bankroll</span>
+            <span className="session-meta-card__value">£{bankroll}</span>
           </div>
 
           <button className="session-btn session-btn--ghost" onClick={onBackToDashboard}>
@@ -178,18 +387,24 @@ export default function SessionPage({ onBackToDashboard, onLogout }) {
           <div className="session-panel">
             <div className="session-panel__header">
               <h2 className="session-panel__title">Game Table</h2>
-              <span className="session-status">Session Active</span>
+              <span className="session-status">
+                {roundActive ? "Round Active" : roundEnded ? "Round Ended" : "Waiting for Bet"}
+              </span>
             </div>
 
             <div className="session-table">
               <div className="session-hand-block">
                 <p className="session-hand-block__label">Dealer Hand</p>
                 <div className="session-cards">
-                  {dealerCards.map((card, i) => (
-                    <div className="session-card" key={`dealer-${i}`}>
-                      {card}
-                    </div>
-                  ))}
+                  {dealerCards.length > 0 ? (
+                    dealerCards.map((card, i) => (
+                      <div className="session-card" key={`dealer-${i}`}>
+                        {card}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="session-card session-card--hidden">?</div>
+                  )}
                 </div>
                 <p className="session-hand-block__value">Visible Value: {visibleDealerValue}</p>
               </div>
@@ -199,13 +414,19 @@ export default function SessionPage({ onBackToDashboard, onLogout }) {
               <div className="session-hand-block">
                 <p className="session-hand-block__label">Player Hand</p>
                 <div className="session-cards">
-                  {playerCards.map((card, i) => (
-                    <div className="session-card" key={`player-${i}`}>
-                      {card}
-                    </div>
-                  ))}
+                  {playerCards.length > 0 ? (
+                    playerCards.map((card, i) => (
+                      <div className="session-card" key={`player-${i}`}>
+                        {card}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="session-card session-card--hidden">?</div>
+                  )}
                 </div>
-                <p className="session-hand-block__value">Total Value: {playerTotal}</p>
+                <p className="session-hand-block__value">
+                  Total Value: {playerCards.length > 0 ? playerTotal : 0}
+                </p>
               </div>
             </div>
           </div>
@@ -215,45 +436,74 @@ export default function SessionPage({ onBackToDashboard, onLogout }) {
               <h2 className="session-panel__title">Session Controls</h2>
             </div>
 
-            <div className="session-controls-grid">
-              <div className="session-control-group">
-                <label htmlFor="betAmount">Bet Amount</label>
-                <input
-                  id="betAmount"
-                  type="number"
-                  min="0"
-                  value={bet}
-                  onChange={(e) => setBet(Number(e.target.value))}
-                />
-              </div>
+            <p className="session-message">{message}</p>
 
+            {!roundActive && !roundEnded && (
+              <div className="session-controls-grid">
+                <div className="session-control-group">
+                  <label htmlFor="betAmount">Bet Amount</label>
+                  <input
+                    id="betAmount"
+                    type="number"
+                    min="1"
+                    max={bankroll}
+                    value={bet}
+                    onChange={(e) => setBet(Number(e.target.value))}
+                  />
+                </div>
+
+                <div className="session-control-group session-control-group--wide">
+                  <label>Bet</label>
+                  <div className="session-button-row">
+                    <button
+                      className="session-btn session-btn--primary"
+                      onClick={placeBet}
+                      disabled={bankroll <= 0}
+                    >
+                      Place Bet
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {roundActive && (
               <div className="session-control-group session-control-group--wide">
                 <label>Actions</label>
                 <div className="session-button-row">
-                  <button className="session-btn session-btn--primary" onClick={placeBet}>
-                    Place Bet
-                  </button>
-                  <button className="session-btn" onClick={hit}>
+                  <button className="session-btn" onClick={hit} disabled={dealerResolving}>
                     Hit
                   </button>
-                  <button className="session-btn" onClick={stand}>
+                  <button className="session-btn" onClick={stand} disabled={dealerResolving}>
                     Stand
                   </button>
-                  <button className="session-btn" onClick={newRound}>
-                    New Round
+                  <button className="session-btn" onClick={doubleDown} disabled={dealerResolving}>
+                    Double
                   </button>
                 </div>
               </div>
-            </div>
+            )}
 
             <div className="session-control-footer">
-              <button className="session-btn session-btn--danger" onClick={endSession}>
-                End Session
-              </button>
-              <button className="session-btn session-btn--ghost">
-                View Session Summary
+              {roundEnded && (
+                <button
+                  className="session-btn session-btn--primary"
+                  onClick={startNextRound}
+                >
+                  Start Next Round
+                </button>
+              )}
+
+              <button
+                className="session-btn session-btn--danger"
+                onClick={endSession}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "End Session"}
               </button>
             </div>
+
+            {saveMessage && <p className="session-message">{saveMessage}</p>}
           </div>
         </section>
 
@@ -285,8 +535,8 @@ export default function SessionPage({ onBackToDashboard, onLogout }) {
               </div>
 
               <div className="session-metric">
-                <span className="session-metric__label">Bankroll</span>
-                <span className="session-metric__value">£{bankroll}</span>
+                <span className="session-metric__label">Active Bet</span>
+                <span className="session-metric__value">£{activeBet}</span>
               </div>
             </div>
           </div>

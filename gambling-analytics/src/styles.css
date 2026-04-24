@@ -905,3 +905,20 @@ body {
     flex-direction: column;
   }
 }
+
+/* =========================
+   SeSSION MESSAGES
+========================= */
+
+.session-message {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.session-card--hidden {
+  background: #232428;
+  color: var(--muted);
+  border: 1px dashed var(--line);
+}

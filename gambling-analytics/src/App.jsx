@@ -87,6 +87,7 @@ export default function App() {
   if (page === "simulator") {
     return (
       <SessionPage
+        user={user}
         onBackToDashboard={() => setPage("dashboard")}
         onLogout={handleLogout}
       />
