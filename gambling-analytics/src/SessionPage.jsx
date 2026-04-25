@@ -1,10 +1,18 @@
 import { useMemo, useState } from "react";
 import { supabase } from "./lib/supabase";
 
-function randomCard() {
+function createDeck() {
   const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
   const suits = ["♠", "♥", "♦", "♣"];
-  return `${ranks[Math.floor(Math.random() * ranks.length)]}${suits[Math.floor(Math.random() * suits.length)]}`;
+  const deck = [];
+
+  ranks.forEach((rank) => {
+    suits.forEach((suit) => {
+      deck.push(`${rank}${suit}`);
+    });
+  });
+
+  return deck.sort(() => Math.random() - 0.5);
 }
 
 function cardValue(card) {
@@ -35,17 +43,10 @@ function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function createStartingHands() {
-  return {
-    dealer: ["?", randomCard()],
-    hiddenDealerCard: randomCard(),
-    player: [randomCard(), randomCard()],
-  };
-}
-
 export default function SessionPage({ user, onBackToDashboard, onLogout }) {
   const [sessionId] = useState(`S-${Math.floor(Math.random() * 9000 + 1000)}`);
 
+  const [deck, setDeck] = useState(createDeck());
   const [round, setRound] = useState(1);
   const [bankroll, setBankroll] = useState(1000);
   const [bet, setBet] = useState(50);
@@ -82,6 +83,51 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
       : 0;
 
   const volatility = activeBet >= 100 ? "High" : activeBet >= 50 ? "Medium" : "Low";
+  const cardsRemaining = deck.length;
+  const cardsUsed = 52 - deck.length;
+  const deckPercentage = Math.round((cardsRemaining / 52) * 100);
+
+  function drawCardFromDeck(currentDeck) {
+    let workingDeck = [...currentDeck];
+
+    if (workingDeck.length === 0) {
+      workingDeck = createDeck();
+      setMessage("Deck was empty, so it has been reshuffled.");
+    }
+
+    const card = workingDeck[0];
+    const remainingDeck = workingDeck.slice(1);
+
+    return { card, remainingDeck };
+  }
+
+  function dealStartingHands() {
+    let workingDeck = [...deck];
+
+    if (workingDeck.length < 4) {
+      workingDeck = createDeck();
+      setMessage("Deck was low, so it has been reshuffled for a new round.");
+    }
+
+    const d1 = drawCardFromDeck(workingDeck);
+    const d2 = drawCardFromDeck(d1.remainingDeck);
+    const p1 = drawCardFromDeck(d2.remainingDeck);
+    const p2 = drawCardFromDeck(p1.remainingDeck);
+
+    setDeck(p2.remainingDeck);
+
+    return {
+      dealer: ["?", d2.card],
+      hiddenDealerCard: d1.card,
+      player: [p1.card, p2.card],
+    };
+  }
+
+  function drawOneCard() {
+    const result = drawCardFromDeck(deck);
+    setDeck(result.remainingDeck);
+    return result.card;
+  }
 
   function updateMetrics(nextBet, outcome) {
     const nextLossStreak = outcome === "Loss" ? lossStreak + 1 : 0;
@@ -106,6 +152,11 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
   }
 
   function startNextRound() {
+    if (bankroll <= 0) {
+      setMessage("You have no money left. Please end the session.");
+      return;
+    }
+
     setRound((prev) => prev + 1);
     setDealerCards([]);
     setHiddenDealerCard(null);
@@ -121,17 +172,22 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
   function placeBet() {
     const betValue = Number(bet);
 
+    if (bankroll <= 0) {
+      setMessage("You have no money left. Please end the session.");
+      return;
+    }
+
     if (!betValue || betValue <= 0) {
       setMessage("Please enter a valid bet amount.");
       return;
     }
 
     if (betValue > bankroll) {
-      setMessage("You cannot bet more than your current bankroll.");
+      setMessage(`Invalid bet. Your bankroll is only £${bankroll}.`);
       return;
     }
 
-    const hands = createStartingHands();
+    const hands = dealStartingHands();
 
     setActiveBet(betValue);
     setBetsPlaced((prev) => [...prev, betValue]);
@@ -182,13 +238,19 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
       payoutText = "Draw: bet returned";
     }
 
-    setBankroll((prev) => prev + bankrollChange);
+    setBankroll((prev) => Math.max(prev + bankrollChange, 0));
     updateMetrics(finalBet, outcome);
 
-    setMessage(
-      `Round ended: ${outcome}. Player ${playerTotalFinal}, Dealer ${dealerTotal}. ${payoutText}. Click "Start Next Round".`
-    );
-
+    if (bankroll - finalBet <= 0 && outcome === "Loss") {
+      setMessage(
+        `Round ended: ${outcome}. Player ${playerTotalFinal}, Dealer ${dealerTotal}. ${payoutText}. You have no money left. Please end the session.`
+      );
+    } else {
+      setMessage(
+        `Round ended: ${outcome}. Player ${playerTotalFinal}, Dealer ${dealerTotal}. ${payoutText}. Click "Start Next Round".`
+      );
+    }
+    
     setLog((prev) => [
       {
         round,
@@ -209,7 +271,7 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
 
     while (handValue(fullDealerHand) < 17) {
       setMessage("Dealer draws a card...");
-      const nextCard = randomCard();
+      const nextCard = drawOneCard();
       fullDealerHand = [...fullDealerHand, nextCard];
       setDealerCards(fullDealerHand);
       await wait(700);
@@ -220,13 +282,9 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
 
     let outcome = "Draw";
 
-    if (playerTotalFinal > 21) {
-      outcome = "Loss";
-    } else if (dealerTotal > 21 || playerTotalFinal > dealerTotal) {
-      outcome = "Win";
-    } else if (playerTotalFinal < dealerTotal) {
-      outcome = "Loss";
-    }
+    if (playerTotalFinal > 21) outcome = "Loss";
+    else if (dealerTotal > 21 || playerTotalFinal > dealerTotal) outcome = "Win";
+    else if (playerTotalFinal < dealerTotal) outcome = "Loss";
 
     finishRound(outcome, fullDealerHand, currentPlayerCards, finalBet);
   }
@@ -234,7 +292,8 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
   function hit() {
     if (!roundActive || dealerResolving) return;
 
-    const nextCards = [...playerCards, randomCard()];
+    const nextCard = drawOneCard();
+    const nextCards = [...playerCards, nextCard];
     setPlayerCards(nextCards);
 
     const total = handValue(nextCards);
@@ -265,7 +324,8 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
       return;
     }
 
-    const nextCards = [...playerCards, randomCard()];
+    const nextCard = drawOneCard();
+    const nextCards = [...playerCards, nextCard];
     setPlayerCards(nextCards);
     setActiveBet(doubledBet);
 
@@ -285,6 +345,8 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
   }
 
   async function endSession() {
+    if (saving) return;
+
     setSaving(true);
     setSaveMessage("");
     setFeedback("Session ended. Saving session data...");
@@ -368,8 +430,12 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
             <span className="session-meta-card__value">£{bankroll}</span>
           </div>
 
-          <button className="session-btn session-btn--ghost" onClick={onBackToDashboard}>
-            Back to Dashboard
+          <button
+            className="session-btn session-btn--ghost"
+            onClick={endSession}
+            disabled={saving || roundActive}
+          >
+            {saving ? "Saving..." : "Back to Dashboard"}
           </button>
 
           <button className="session-btn session-btn--danger" onClick={onLogout}>
@@ -445,6 +511,7 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
                     max={bankroll}
                     value={bet}
                     onChange={(e) => setBet(Number(e.target.value))}
+                    disabled={bankroll <= 0}
                   />
                 </div>
 
@@ -481,18 +548,46 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
             )}
 
             <div className="session-control-footer">
-              {roundEnded && (
-                <button className="session-btn session-btn--primary" onClick={startNextRound}>
+              {roundEnded && bankroll > 0 && (
+                <button
+                  className="session-btn session-btn--primary"
+                  onClick={startNextRound}
+                >
                   Start Next Round
                 </button>
               )}
 
-              <button className="session-btn session-btn--danger" onClick={endSession} disabled={saving}>
-                {saving ? "Saving..." : "End Session"}
-              </button>
+              {!roundActive && (
+                <button className="session-btn session-btn--danger" onClick={endSession} disabled={saving}>
+                  {saving ? "Saving..." : "End Session"}
+                </button>
+              )}
+            </div>
+            {saveMessage && <p className="session-message">{saveMessage}</p>}
+          </div>
+
+          <div className="session-panel deck-panel">
+            <div className="session-panel__header">
+              <h2 className="session-panel__title">Deck Status</h2>
+              <span className="session-status">{cardsRemaining} cards left</span>
             </div>
 
-            {saveMessage && <p className="session-message">{saveMessage}</p>}
+            <div className="deck-visual">
+              <div className="deck-stack">
+                <div className="deck-card deck-card--back"></div>
+                <div className="deck-card deck-card--back"></div>
+                <div className="deck-card deck-card--back"></div>
+              </div>
+
+              <div className="deck-info">
+                <p className="deck-info__main">{cardsRemaining} / 52 cards remaining</p>
+                <p className="deck-info__sub">{cardsUsed} cards used from current deck</p>
+
+                <div className="deck-progress">
+                  <div className="deck-progress__fill" style={{ width: `${deckPercentage}%` }}></div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -553,12 +648,22 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
             </div>
 
             <div className="session-log-list">
-              {log.map((item, index) => (
-                <div className="session-log-item" key={`${item.round}-${index}`}>
-                  <span className="session-log-item__round">R{item.round}</span>
-                  <span className="session-log-item__text">{item.text}</span>
-                </div>
-              ))}
+              {log.map((item, index) => {
+                const text = item.text.toLowerCase();
+
+                let type = "";
+                if (text.includes("win")) type = "win";
+                else if (text.includes("loss")) type = "loss";
+                else if (text.includes("draw")) type = "draw";
+
+                return (
+                  <div className={`session-log-item ${type}`} key={`${item.round}-${index}`}>
+                    <span className="session-log-item__round">R{item.round}</span>
+                    <span className="session-log-item__text">{item.text}</span>
+                    {type && <span className={`session-log-badge ${type}`}>{type.toUpperCase()}</span>}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </aside>

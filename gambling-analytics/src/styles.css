@@ -557,6 +557,174 @@ body {
   font-size: 14px;
 }
 
+.session-log-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+/* WIN */
+.session-log-item.win {
+  border-left: 4px solid #22c55e;
+}
+
+.session-log-badge.win {
+  color: #22c55e;
+}
+
+/* LOSS */
+.session-log-item.loss {
+  border-left: 4px solid #ef4444;
+}
+
+.session-log-badge.loss {
+  color: #ef4444;
+}
+
+/* DRAW */
+.session-log-item.draw {
+  border-left: 4px solid #eab308;
+}
+
+.session-log-badge.draw {
+  color: #eab308;
+}
+
+/* Badge */
+.session-log-badge {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.session-log-list {
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+/* Optional: nicer dark scrollbar */
+.session-log-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.session-log-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 999px;
+}
+
+.session-log-list::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 999px;
+}
+
+.session-log-list::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+.deck-panel {
+  min-height: 220px;
+}
+
+.deck-visual {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.deck-stack {
+  position: relative;
+  width: 120px;
+  height: 150px;
+}
+
+.deck-card {
+  position: absolute;
+  width: 90px;
+  height: 125px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: linear-gradient(135deg, #5865f2, #313338);
+  box-shadow: var(--shadow);
+}
+
+.deck-card:nth-child(1) {
+  left: 0;
+  top: 18px;
+}
+
+.deck-card:nth-child(2) {
+  left: 12px;
+  top: 9px;
+}
+
+.deck-card:nth-child(3) {
+  left: 24px;
+  top: 0;
+}
+
+.deck-card--back::before {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+}
+
+.deck-card--back::after {
+  content: "♠";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.deck-info {
+  flex: 1;
+}
+
+.deck-info__main {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.deck-info__sub {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.deck-progress {
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+
+.deck-progress__fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+@media (max-width: 720px) {
+  .deck-visual {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 /* =========================
    RESPONSIVE
 ========================= */
