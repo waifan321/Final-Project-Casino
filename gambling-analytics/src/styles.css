@@ -725,6 +725,13 @@ body {
   }
 }
 
+.session-card.red {
+  color: #ef4444; /* nice modern red */
+}
+
+.session-card.black {
+  color: #111; /* or white if dark mode */
+}
 /* =========================
    RESPONSIVE
 ========================= */

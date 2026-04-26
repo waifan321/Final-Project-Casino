@@ -264,18 +264,31 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
     setDealerResolving(true);
     setMessage("Dealer reveals hidden card...");
 
+    let workingDeck = [...deck]; // ✅ LOCAL DECK
     let fullDealerHand = [hiddenDealerCard, dealerCards[1]];
-    setDealerCards(fullDealerHand);
 
+    setDealerCards(fullDealerHand);
     await wait(700);
 
     while (handValue(fullDealerHand) < 17) {
+      if (workingDeck.length === 0) {
+        workingDeck = createDeck();
+        setMessage("Deck reshuffled.");
+        await wait(700);
+      }
+
       setMessage("Dealer draws a card...");
-      const nextCard = drawOneCard();
+
+      const nextCard = workingDeck[0];   // ✅ TAKE CARD
+      workingDeck = workingDeck.slice(1); // ✅ REMOVE CARD
+
       fullDealerHand = [...fullDealerHand, nextCard];
       setDealerCards(fullDealerHand);
+
       await wait(700);
     }
+
+    setDeck(workingDeck); // ✅ UPDATE ONCE
 
     const dealerTotal = handValue(fullDealerHand);
     const playerTotalFinal = handValue(currentPlayerCards);
@@ -287,7 +300,7 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
     else if (playerTotalFinal < dealerTotal) outcome = "Loss";
 
     finishRound(outcome, fullDealerHand, currentPlayerCards, finalBet);
-  }
+}
 
   function hit() {
     if (!roundActive || dealerResolving) return;
@@ -460,7 +473,12 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
                 <div className="session-cards">
                   {dealerCards.length > 0 ? (
                     dealerCards.map((card, i) => (
-                      <div className="session-card" key={`dealer-${i}`}>
+                      <div
+                        className={`session-card ${
+                          card.includes("♥") || card.includes("♦") ? "red" : "black"
+                        }`}
+                        key={`player-${i}`}
+                      >
                         {card}
                       </div>
                     ))
@@ -478,7 +496,12 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
                 <div className="session-cards">
                   {playerCards.length > 0 ? (
                     playerCards.map((card, i) => (
-                      <div className="session-card" key={`player-${i}`}>
+                      <div
+                        className={`session-card ${
+                          card.includes("♥") || card.includes("♦") ? "red" : "black"
+                        }`}
+                        key={`player-${i}`}
+                      >
                         {card}
                       </div>
                     ))
