@@ -13,6 +13,23 @@ import {
   CartesianGrid,
 } from "recharts";
 
+const tooltipStyle = {
+  backgroundColor: "#2b2d31",
+  border: "1px solid #5865f2",
+  borderRadius: "10px",
+  color: "#f2f3f5",
+};
+
+const labelStyle = {
+  color: "#b5bac1",
+};
+
+const axisStyle = {
+  stroke: "#b5bac1",
+};
+
+const gridStyle = "#3b3d44";
+
 export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
   const [profile, setProfile] = useState(user);
   const [sessions, setSessions] = useState([]);
@@ -56,13 +73,12 @@ export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
     loadDashboardData();
   }, [user.id]);
 
-  // Format session data for line chart: track cumulative profit over time
   const chartData = useMemo(() => {
     let runningTotal = 0;
 
     return sessions.map((session, index) => {
-      const profit = Number(session.final_bankroll || 1000) - 1000; // Profit = final bankroll - starting 1000
-      runningTotal += profit; // Cumulative sum for line chart
+      const profit = Number(session.final_bankroll || 1000) - 1000;
+      runningTotal += profit;
 
       return {
         name: `S${index + 1}`,
@@ -74,7 +90,6 @@ export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
     });
   }, [sessions]);
 
-  // Parse session logs to extract win/loss/draw counts for pie chart
   const winLossData = useMemo(() => {
     let wins = 0;
     let losses = 0;
@@ -86,7 +101,6 @@ export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
       logs.forEach((entry) => {
         const text = String(entry.text || "").toLowerCase();
 
-        // Count outcomes from session log entries
         if (text.includes("round ended")) {
           if (text.includes("win")) wins += 1;
           else if (text.includes("loss")) losses += 1;
@@ -155,7 +169,8 @@ export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
         <div className="dashboard-card dashboard-card--wide">
           <h2>Global Leaderboard</h2>
           <p className="chart-description">
-            Compares players by total profit, separating the highest profit makers from the biggest losses.
+            Compares players by total profit, separating the highest profit makers
+            from the biggest losses.
           </p>
 
           <div className="leaderboard-split">
@@ -167,8 +182,10 @@ export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
                   <p className="dashboard-muted">No profit data yet.</p>
                 ) : (
                   topWinners.map((player, index) => (
-                    <div className="leaderboard-row winner" key={`winner-${index}`}>
-                      {/* Display medals for top 3, ranks for others */}
+                    <div
+                      className="leaderboard-row winner"
+                      key={`winner-${index}`}
+                    >
                       <span className="leaderboard-rank">
                         {index === 0
                           ? "🥇"
@@ -200,7 +217,10 @@ export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
                   <p className="dashboard-muted">No loss data yet.</p>
                 ) : (
                   topLosers.map((player, index) => (
-                    <div className="leaderboard-row loser" key={`loser-${index}`}>
+                    <div
+                      className="leaderboard-row loser"
+                      key={`loser-${index}`}
+                    >
                       <span className="leaderboard-rank">#{index + 1}</span>
 
                       <span className="leaderboard-name">
@@ -221,7 +241,8 @@ export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
         <div className="dashboard-card dashboard-card--wide">
           <h2>Win / Loss Distribution</h2>
           <p className="chart-description">
-            Shows the proportion of rounds ending in wins, losses, or draws across saved sessions.
+            Shows the proportion of rounds ending in wins, losses, or draws across
+            saved sessions.
           </p>
 
           <div className="chart-box">
@@ -238,7 +259,11 @@ export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
                   <Cell fill="#ef4444" />
                   <Cell fill="#eab308" />
                 </Pie>
-                <Tooltip />
+                <Tooltip
+                  contentStyle={tooltipStyle}
+                  labelStyle={labelStyle}
+                  itemStyle={{ color: "#5865f2", fontWeight: 700 }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -253,11 +278,21 @@ export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
           <div className="chart-box">
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis tickFormatter={(value) => `£${value}`} />
-                <Tooltip formatter={(value) => `£${value}`} />
-                <Line type="monotone" dataKey="profit" stroke="#5865f2" strokeWidth={3} />
+                <CartesianGrid stroke={gridStyle} strokeDasharray="3 3" />
+                <XAxis dataKey="name" {...axisStyle} />
+                <YAxis {...axisStyle} tickFormatter={(value) => `£${value}`} />
+                <Tooltip
+                  contentStyle={tooltipStyle}
+                  labelStyle={labelStyle}
+                  itemStyle={{ color: "#5865f2", fontWeight: 700 }}
+                  formatter={(value) => [`£${value}`, "Profit"]}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="profit"
+                  stroke="#5865f2"
+                  strokeWidth={3}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -266,17 +301,28 @@ export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
         <div className="dashboard-card dashboard-card--wide">
           <h2>Cumulative Profit Over Time</h2>
           <p className="chart-description">
-            Tracks the running total of profit and loss, showing whether performance improves or declines over time.
+            Tracks the running total of profit and loss, showing whether performance
+            improves or declines over time.
           </p>
 
           <div className="chart-box">
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis tickFormatter={(value) => `£${value}`} />
-                <Tooltip formatter={(value) => `£${value}`} />
-                <Line type="monotone" dataKey="cumulative" stroke="#a78bfa" strokeWidth={3} />
+                <CartesianGrid stroke={gridStyle} strokeDasharray="3 3" />
+                <XAxis dataKey="name" {...axisStyle} />
+                <YAxis {...axisStyle} tickFormatter={(value) => `£${value}`} />
+                <Tooltip
+                  contentStyle={tooltipStyle}
+                  labelStyle={labelStyle}
+                  itemStyle={{ color: "#a78bfa", fontWeight: 700 }}
+                  formatter={(value) => [`£${value}`, "Cumulative Profit"]}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="cumulative"
+                  stroke="#a78bfa"
+                  strokeWidth={3}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -285,17 +331,28 @@ export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
         <div className="dashboard-card dashboard-card--wide">
           <h2>Average Bet Trend</h2>
           <p className="chart-description">
-            Shows whether the user increases or decreases their average bet size across sessions.
+            Shows whether the user increases or decreases their average bet size
+            across sessions.
           </p>
 
           <div className="chart-box">
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis tickFormatter={(value) => `£${value}`} />
-                <Tooltip formatter={(value) => `£${value}`} />
-                <Line type="monotone" dataKey="avgBet" stroke="#22c55e" strokeWidth={3} />
+                <CartesianGrid stroke={gridStyle} strokeDasharray="3 3" />
+                <XAxis dataKey="name" {...axisStyle} />
+                <YAxis {...axisStyle} tickFormatter={(value) => `£${value}`} />
+                <Tooltip
+                  contentStyle={tooltipStyle}
+                  labelStyle={labelStyle}
+                  itemStyle={{ color: "#22c55e", fontWeight: 700 }}
+                  formatter={(value) => [`£${value}`, "Average Bet"]}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="avgBet"
+                  stroke="#22c55e"
+                  strokeWidth={3}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -304,17 +361,28 @@ export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
         <div className="dashboard-card dashboard-card--wide">
           <h2>Risk Score Trend</h2>
           <p className="chart-description">
-            Represents changes in calculated behavioural risk based on betting patterns and loss streaks.
+            Represents changes in calculated behavioural risk based on betting
+            patterns and loss streaks.
           </p>
 
           <div className="chart-box">
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis domain={[0, 1]} />
-                <Tooltip />
-                <Line type="monotone" dataKey="riskScore" stroke="#f59e0b" strokeWidth={3} />
+                <CartesianGrid stroke={gridStyle} strokeDasharray="3 3" />
+                <XAxis dataKey="name" {...axisStyle} />
+                <YAxis {...axisStyle} domain={[0, 1]} />
+                <Tooltip
+                  contentStyle={tooltipStyle}
+                  labelStyle={labelStyle}
+                  itemStyle={{ color: "#f59e0b", fontWeight: 700 }}
+                  formatter={(value) => [value, "Risk Score"]}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="riskScore"
+                  stroke="#f59e0b"
+                  strokeWidth={3}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
