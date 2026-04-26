@@ -1074,6 +1074,34 @@ body {
   }
 }
 
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.chart-box {
+  width: 100%;
+  height: 280px;
+  margin-top: 12px;
+}
+
+.dashboard-value.positive,
+.leaderboard-profit.positive {
+  color: #22c55e;
+}
+
+.dashboard-value.negative,
+.leaderboard-profit.negative {
+  color: #ef4444;
+}
+
+@media (max-width: 900px) {
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* =========================
    SESSION MESSAGES
 ========================= */
