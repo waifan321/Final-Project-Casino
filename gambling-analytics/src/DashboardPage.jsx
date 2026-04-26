@@ -3,8 +3,6 @@ import { supabase } from "./lib/supabase";
 import {
   LineChart,
   Line,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
@@ -18,7 +16,8 @@ import {
 export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
   const [profile, setProfile] = useState(user);
   const [sessions, setSessions] = useState([]);
-  const [leaderboard, setLeaderboard] = useState([]);
+  const [topWinners, setTopWinners] = useState([]);
+  const [topLosers, setTopLosers] = useState([]);
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -38,28 +37,44 @@ export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
 
       if (sessionsData) setSessions(sessionsData);
 
-      const { data: leaderboardData } = await supabase
+      const { data: winnersData } = await supabase
         .from("profiles")
         .select("display_name, email, total_profit")
         .order("total_profit", { ascending: false })
-        .limit(10);
+        .limit(5);
 
-      if (leaderboardData) setLeaderboard(leaderboardData);
+      const { data: losersData } = await supabase
+        .from("profiles")
+        .select("display_name, email, total_profit")
+        .order("total_profit", { ascending: true })
+        .limit(5);
+
+      if (winnersData) setTopWinners(winnersData);
+      if (losersData) setTopLosers(losersData);
     }
 
     loadDashboardData();
   }, [user.id]);
 
+  // Format session data for line chart: track cumulative profit over time
   const chartData = useMemo(() => {
-    return sessions.map((session, index) => ({
-      name: `S${index + 1}`,
-      profit: Number(session.final_bankroll || 1000) - 1000,
-      avgBet: Number(session.avg_bet || 0),
-      riskScore: Number(session.risk_score || 0),
-      bankroll: Number(session.final_bankroll || 0),
-    }));
+    let runningTotal = 0;
+
+    return sessions.map((session, index) => {
+      const profit = Number(session.final_bankroll || 1000) - 1000; // Profit = final bankroll - starting 1000
+      runningTotal += profit; // Cumulative sum for line chart
+
+      return {
+        name: `S${index + 1}`,
+        profit,
+        cumulative: runningTotal,
+        avgBet: Number(session.avg_bet || 0),
+        riskScore: Number(session.risk_score || 0),
+      };
+    });
   }, [sessions]);
 
+  // Parse session logs to extract win/loss/draw counts for pie chart
   const winLossData = useMemo(() => {
     let wins = 0;
     let losses = 0;
@@ -71,6 +86,7 @@ export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
       logs.forEach((entry) => {
         const text = String(entry.text || "").toLowerCase();
 
+        // Count outcomes from session log entries
         if (text.includes("round ended")) {
           if (text.includes("win")) wins += 1;
           else if (text.includes("loss")) losses += 1;
@@ -118,12 +134,18 @@ export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
 
         <div className="dashboard-card">
           <h2>Average Bet</h2>
-          <p className="dashboard-value">£{Number(profile.avg_bet || 0).toFixed(2)}</p>
+          <p className="dashboard-value">
+            £{Number(profile.avg_bet || 0).toFixed(2)}
+          </p>
         </div>
 
         <div className="dashboard-card">
           <h2>Total Profit</h2>
-          <p className={`dashboard-value ${(profile.total_profit || 0) >= 0 ? "positive" : "negative"}`}>
+          <p
+            className={`dashboard-value ${
+              Number(profile.total_profit || 0) >= 0 ? "positive" : "negative"
+            }`}
+          >
             £{Number(profile.total_profit || 0).toFixed(2)}
           </p>
         </div>
@@ -131,52 +153,77 @@ export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
 
       <section className="chart-grid">
         <div className="dashboard-card dashboard-card--wide">
-          <h2>Profit Over Sessions</h2>
-          <div className="chart-box">
-            <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="profit" stroke="#5865f2" strokeWidth={3} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+          <h2>Global Leaderboard</h2>
+          <p className="chart-description">
+            Compares players by total profit, separating the highest profit makers from the biggest losses.
+          </p>
 
-        <div className="dashboard-card dashboard-card--wide">
-          <h2>Average Bet Trend</h2>
-          <div className="chart-box">
-            <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="avgBet" stroke="#22c55e" strokeWidth={3} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+          <div className="leaderboard-split">
+            <div>
+              <h3 className="leaderboard-subtitle">Top Profit Makers</h3>
 
-        <div className="dashboard-card dashboard-card--wide">
-          <h2>Risk Score Trend</h2>
-          <div className="chart-box">
-            <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis domain={[0, 1]} />
-                <Tooltip />
-                <Line type="monotone" dataKey="riskScore" stroke="#f59e0b" strokeWidth={3} />
-              </LineChart>
-            </ResponsiveContainer>
+              <div className="leaderboard-list">
+                {topWinners.length === 0 ? (
+                  <p className="dashboard-muted">No profit data yet.</p>
+                ) : (
+                  topWinners.map((player, index) => (
+                    <div className="leaderboard-row winner" key={`winner-${index}`}>
+                      {/* Display medals for top 3, ranks for others */}
+                      <span className="leaderboard-rank">
+                        {index === 0
+                          ? "🥇"
+                          : index === 1
+                          ? "🥈"
+                          : index === 2
+                          ? "🥉"
+                          : `#${index + 1}`}
+                      </span>
+
+                      <span className="leaderboard-name">
+                        {player.display_name || player.email}
+                      </span>
+
+                      <span className="leaderboard-profit positive">
+                        £{Number(player.total_profit || 0).toFixed(2)}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="leaderboard-subtitle">Top Profit Losers</h3>
+
+              <div className="leaderboard-list">
+                {topLosers.length === 0 ? (
+                  <p className="dashboard-muted">No loss data yet.</p>
+                ) : (
+                  topLosers.map((player, index) => (
+                    <div className="leaderboard-row loser" key={`loser-${index}`}>
+                      <span className="leaderboard-rank">#{index + 1}</span>
+
+                      <span className="leaderboard-name">
+                        {player.display_name || player.email}
+                      </span>
+
+                      <span className="leaderboard-profit negative">
+                        £{Number(player.total_profit || 0).toFixed(2)}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="dashboard-card dashboard-card--wide">
           <h2>Win / Loss Distribution</h2>
+          <p className="chart-description">
+            Shows the proportion of rounds ending in wins, losses, or draws across saved sessions.
+          </p>
+
           <div className="chart-box">
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
@@ -196,54 +243,80 @@ export default function DashboardPage({ user, onOpenSimulator, onLogout }) {
             </ResponsiveContainer>
           </div>
         </div>
+
         <div className="dashboard-card dashboard-card--wide">
-          <h2>Global Leaderboard</h2>
+          <h2>Profit Over Sessions</h2>
+          <p className="chart-description">
+            Displays how much profit or loss was made in each individual saved session.
+          </p>
 
-          <div className="leaderboard-list">
-            {leaderboard.length === 0 ? (
-              <p className="dashboard-muted">No leaderboard data yet.</p>
-            ) : (
-              leaderboard.map((player, index) => {
-                const rank = index + 1;
+          <div className="chart-box">
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis tickFormatter={(value) => `£${value}`} />
+                <Tooltip formatter={(value) => `£${value}`} />
+                <Line type="monotone" dataKey="profit" stroke="#5865f2" strokeWidth={3} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
 
-                return (
-                  <div
-                    className={`leaderboard-row ${
-                      rank === 1
-                        ? "gold"
-                        : rank === 2
-                        ? "silver"
-                        : rank === 3
-                        ? "bronze"
-                        : ""
-                    }`}
-                    key={index}
-                  >
-                    <span className="leaderboard-rank">
-                      {rank === 1
-                        ? "🥇"
-                        : rank === 2
-                        ? "🥈"
-                        : rank === 3
-                        ? "🥉"
-                        : `#${rank}`}
-                    </span>
+        <div className="dashboard-card dashboard-card--wide">
+          <h2>Cumulative Profit Over Time</h2>
+          <p className="chart-description">
+            Tracks the running total of profit and loss, showing whether performance improves or declines over time.
+          </p>
 
-                    <span className="leaderboard-name">
-                      {player.display_name || player.email}
-                    </span>
+          <div className="chart-box">
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis tickFormatter={(value) => `£${value}`} />
+                <Tooltip formatter={(value) => `£${value}`} />
+                <Line type="monotone" dataKey="cumulative" stroke="#a78bfa" strokeWidth={3} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
 
-                    <span
-                      className={`leaderboard-profit ${
-                        player.total_profit >= 0 ? "positive" : "negative"
-                      }`}
-                    >
-                      £{Number(player.total_profit || 0).toFixed(2)}
-                    </span>
-                  </div>
-                );
-              })
-            )}
+        <div className="dashboard-card dashboard-card--wide">
+          <h2>Average Bet Trend</h2>
+          <p className="chart-description">
+            Shows whether the user increases or decreases their average bet size across sessions.
+          </p>
+
+          <div className="chart-box">
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis tickFormatter={(value) => `£${value}`} />
+                <Tooltip formatter={(value) => `£${value}`} />
+                <Line type="monotone" dataKey="avgBet" stroke="#22c55e" strokeWidth={3} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="dashboard-card dashboard-card--wide">
+          <h2>Risk Score Trend</h2>
+          <p className="chart-description">
+            Represents changes in calculated behavioural risk based on betting patterns and loss streaks.
+          </p>
+
+          <div className="chart-box">
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis domain={[0, 1]} />
+                <Tooltip />
+                <Line type="monotone" dataKey="riskScore" stroke="#f59e0b" strokeWidth={3} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </section>

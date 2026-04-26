@@ -36,6 +36,7 @@ export default function LoginPage({ onLogin, onBack, onGoSignup }) {
         console.error("profile fetch error:", profileError.message);
       }
 
+      // If profile doesn't exist in DB, create one on first login
       if (!profile) {
         const { data: newProfile, error: insertError } = await supabase
           .from("profiles")

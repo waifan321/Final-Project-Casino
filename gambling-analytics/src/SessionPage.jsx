@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { supabase } from "./lib/supabase";
 
+// Create and shuffle a standard 52-card deck
 function createDeck() {
   const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
   const suits = ["♠", "♥", "♦", "♣"];
@@ -12,21 +13,25 @@ function createDeck() {
     });
   });
 
+  // Shuffle using Fisher-Yates-like randomization
   return deck.sort(() => Math.random() - 0.5);
 }
 
+// Get numeric value of a single card (face cards = 10, Ace = 11 initially)
 function cardValue(card) {
   if (!card || card === "?") return 0;
-  const rank = card.slice(0, -1);
+  const rank = card.slice(0, -1); // Extract rank from card string (e.g. "A" from "A♠")
   if (["J", "Q", "K"].includes(rank)) return 10;
-  if (rank === "A") return 11;
+  if (rank === "A") return 11; // Ace is 11 (adjusted to 1 in handValue if needed)
   return Number(rank);
 }
 
+// Calculate blackjack hand value, adjusting Aces from 11 to 1 if needed to avoid bust
 function handValue(cards) {
   let total = cards.reduce((sum, card) => sum + cardValue(card), 0);
   let aces = cards.filter((card) => card.startsWith("A")).length;
 
+  // Convert Aces from 11 to 1 if total exceeds 21
   while (total > 21 && aces > 0) {
     total -= 10;
     aces -= 1;
@@ -72,9 +77,10 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
 
   const playerTotal = useMemo(() => handValue(playerCards), [playerCards]);
 
+  // Calculate dealer's visible hand value (hidden card shows as "?" initially)
   const visibleDealerValue = useMemo(() => {
     if (dealerCards.length === 0) return 0;
-    return handValue(dealerCards.filter((card) => card !== "?"));
+    return handValue(dealerCards.filter((card) => card !== "?")); // Exclude hidden card from total
   }, [dealerCards]);
 
   const avgBet =
@@ -101,23 +107,26 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
     return { card, remainingDeck };
   }
 
+  // Deal 4 cards at start of round: 1 hidden dealer, 1 dealer, 1 player, 1 player
+  // Hidden dealer card is shown later when player stands
   function dealStartingHands() {
     let workingDeck = [...deck];
 
+    // Auto-reshuffle if fewer than 4 cards available
     if (workingDeck.length < 4) {
       workingDeck = createDeck();
       setMessage("Deck was low, so it has been reshuffled for a new round.");
     }
 
-    const d1 = drawCardFromDeck(workingDeck);
-    const d2 = drawCardFromDeck(d1.remainingDeck);
-    const p1 = drawCardFromDeck(d2.remainingDeck);
-    const p2 = drawCardFromDeck(p1.remainingDeck);
+    const d1 = drawCardFromDeck(workingDeck); // Dealer hidden card
+    const d2 = drawCardFromDeck(d1.remainingDeck); // Dealer visible card
+    const p1 = drawCardFromDeck(d2.remainingDeck); // Player card 1
+    const p2 = drawCardFromDeck(p1.remainingDeck); // Player card 2
 
     setDeck(p2.remainingDeck);
 
     return {
-      dealer: ["?", d2.card],
+      dealer: ["?", d2.card], // First card hidden as "?"
       hiddenDealerCard: d1.card,
       player: [p1.card, p2.card],
     };
@@ -129,19 +138,22 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
     return result.card;
   }
 
+  // Calculate risk score based on betting behavior and loss streaks
+  // Score factors: high bets, loss streaks, and round count
   function updateMetrics(nextBet, outcome) {
     const nextLossStreak = outcome === "Loss" ? lossStreak + 1 : 0;
     setLossStreak(nextLossStreak);
 
-    let score = 0.1;
-    if (avgBet > 0 && nextBet > avgBet) score += 0.18;
-    if (nextLossStreak >= 2) score += 0.24;
-    if (nextBet >= 100) score += 0.15;
-    if (round >= 5) score += 0.12;
+    let score = 0.1; // Base risk score
+    if (avgBet > 0 && nextBet > avgBet) score += 0.18; // Betting above average
+    if (nextLossStreak >= 2) score += 0.24; // Loss streak of 2+
+    if (nextBet >= 100) score += 0.15; // High individual bet
+    if (round >= 5) score += 0.12; // Many rounds played
 
-    score = Math.min(1, Number(score.toFixed(2)));
+    score = Math.min(1, Number(score.toFixed(2))); // Cap at 1.0
     setRiskScore(score);
 
+    // Provide behavior feedback based on risk score
     if (score >= 0.6) {
       setFeedback("Risk pattern rising: increased bets and repeated losses detected.");
     } else if (score >= 0.35) {
@@ -210,6 +222,7 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
     }
   }
 
+  // Resolve round outcome and update bankroll with appropriate payout
   function finishRound(outcome, finalDealerCards, finalPlayerCards, finalBet = activeBet) {
     setRoundActive(false);
     setRoundEnded(true);
@@ -222,19 +235,20 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
     let bankrollChange = 0;
     let payoutText = "";
 
+    // Calculate bankroll change based on outcome
     if (outcome === "Win") {
       if (playerBlackjack) {
-        bankrollChange = finalBet * 1.5;
+        bankrollChange = finalBet * 1.5; // Blackjack pays 1.5x
         payoutText = "Blackjack payout: 1.5x bet";
       } else {
-        bankrollChange = finalBet;
+        bankrollChange = finalBet; // Regular win pays 1x
         payoutText = "Standard win payout: 1x bet";
       }
     } else if (outcome === "Loss") {
-      bankrollChange = -finalBet;
+      bankrollChange = -finalBet; // Loss loses the bet
       payoutText = "Loss: bet deducted";
     } else {
-      bankrollChange = 0;
+      bankrollChange = 0; // Draw returns bet
       payoutText = "Draw: bet returned";
     }
 
@@ -260,16 +274,18 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
     ]);
   }
 
+  // Dealer reveals hidden card and draws until 17+, with visual delays for gameplay
   async function revealDealerAndResolve(currentPlayerCards, finalBet = activeBet) {
     setDealerResolving(true);
     setMessage("Dealer reveals hidden card...");
 
-    let workingDeck = [...deck]; // ✅ LOCAL DECK
+    let workingDeck = [...deck]; // Local deck copy for dealer draws
     let fullDealerHand = [hiddenDealerCard, dealerCards[1]];
 
     setDealerCards(fullDealerHand);
-    await wait(700);
+    await wait(700); // Delay for visual effect
 
+    // Dealer hits on 16 or less (standard blackjack rule)
     while (handValue(fullDealerHand) < 17) {
       if (workingDeck.length === 0) {
         workingDeck = createDeck();
@@ -279,16 +295,16 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
 
       setMessage("Dealer draws a card...");
 
-      const nextCard = workingDeck[0];   // ✅ TAKE CARD
-      workingDeck = workingDeck.slice(1); // ✅ REMOVE CARD
+      const nextCard = workingDeck[0];
+      workingDeck = workingDeck.slice(1);
 
       fullDealerHand = [...fullDealerHand, nextCard];
       setDealerCards(fullDealerHand);
 
-      await wait(700);
+      await wait(700); // Delay for visual effect
     }
 
-    setDeck(workingDeck); // ✅ UPDATE ONCE
+    setDeck(workingDeck); // Update global deck after all dealer actions
 
     const dealerTotal = handValue(fullDealerHand);
     const playerTotalFinal = handValue(currentPlayerCards);
@@ -357,6 +373,7 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
     await revealDealerAndResolve(nextCards, doubledBet);
   }
 
+  // Save session data to DB and update user profile statistics
   async function endSession() {
     if (saving) return;
 
@@ -365,7 +382,7 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
     setFeedback("Session ended. Saving session data...");
 
     try {
-      const sessionProfit = bankroll - 1000;
+      const sessionProfit = bankroll - 1000; // Profit = final - starting 1000
 
       const sessionPayload = {
         user_id: user.id,
@@ -382,6 +399,7 @@ export default function SessionPage({ user, onBackToDashboard, onLogout }) {
 
       const newSessionsPlayed = (user.sessions_played || 0) + 1;
 
+      // Calculate rolling average of bets across all sessions
       const newAvgBet =
         user.sessions_played && user.sessions_played > 0
           ? Number(

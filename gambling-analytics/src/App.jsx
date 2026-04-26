@@ -12,7 +12,8 @@ export default function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // check existing session (no loading lock)
+    // Check if user has an existing session on app load
+    // If no profile exists in DB, create a safe fallback with default values
     async function checkSession() {
       const { data } = await supabase.auth.getSession();
 
@@ -25,6 +26,7 @@ export default function App() {
           .eq("id", authUser.id)
           .maybeSingle();
 
+        // Fallback: if user exists but no profile in DB, create safe default
         const safeProfile =
           profile || {
             id: authUser.id,
@@ -51,7 +53,7 @@ export default function App() {
     setPage("home");
   }
 
-  // NOT LOGGED IN
+  // Route: User is not authenticated - show login/signup/home
   if (!user) {
     if (page === "login") {
       return (
@@ -83,7 +85,7 @@ export default function App() {
     );
   }
 
-  // LOGGED IN
+  // Route: User is authenticated - show simulator or dashboard
   if (page === "simulator") {
     return (
       <SessionPage

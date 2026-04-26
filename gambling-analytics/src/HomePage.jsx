@@ -4,13 +4,19 @@ export default function HomePage({ onGoLogin, onGoSignup }) {
       <header className="home-topbar">
         <div className="home-brand">
           <div className="home-brand__dot"></div>
-          <span className="home-brand__name">Behaviour Analytics</span>
+          <span className="home-brand__name">GamStats</span>
         </div>
 
-        <nav className="home-nav">
-          <button className="home-nav__link" onClick={onGoLogin}>Login</button>
-          <button className="home-nav__link" onClick={onGoSignup}>Sign Up</button>
-        </nav>
+        {/* 🔥 Styled top-right auth buttons */}
+        <div className="home-auth">
+          <button className="home-auth__login" onClick={onGoLogin}>
+            Login
+          </button>
+
+          <button className="home-auth__signup" onClick={onGoSignup}>
+            Sign Up
+          </button>
+        </div>
       </header>
 
       <main className="home-hero">
@@ -18,33 +24,32 @@ export default function HomePage({ onGoLogin, onGoSignup }) {
           <p className="home-eyebrow">Final Year Project</p>
 
           <h1 className="home-hero__title">
-            Visualising Player Behaviour in Simulated Casino Games
+            GamStats: Visualising Player Behaviour in Simulated Casino Games
           </h1>
 
           <p className="home-hero__subtitle">
-            This application lets users explore betting behaviour, session trends,
-            and decision-making through a simplified blackjack simulator and a
-            personal analytics dashboard.
+            Developed by Wai Leung Fan (33752058), this final year project explores
+            betting behaviour, session trends, and decision-making through a simplified
+            blackjack simulator and an interactive analytics dashboard.
           </p>
 
+          {/* ✅ ONLY ONE CTA */}
           <div className="home-hero__actions">
             <button className="home-btn home-btn--primary" onClick={onGoSignup}>
               Get Started
             </button>
-            <button className="home-btn home-btn--secondary" onClick={onGoLogin}>
-              Login
-            </button>
           </div>
 
           <p className="home-hero__note">
-            No real money. Built for behavioural analysis, transparency, and data representation.
+            Educational prototype. No real money involved. Built for behavioural analysis,
+            transparency, and data visualisation.
           </p>
         </section>
 
         <aside className="home-hero__panel">
           <div className="home-panel">
             <div className="home-panel__header">
-              <span className="home-panel__title">What the app does</span>
+              <span className="home-panel__title">GamStats Overview</span>
               <span className="home-panel__tag">Overview</span>
             </div>
 
@@ -70,32 +75,36 @@ export default function HomePage({ onGoLogin, onGoSignup }) {
 
       <section className="home-features">
         <div className="home-card">
-          <h2 className="home-card__title">About the App</h2>
+          <h2 className="home-card__title">About the Project</h2>
           <p className="home-card__text">
-            The app is designed to represent and analyse gambling-style decision data
-            in a safe, educational environment.
+            GamStats is a final year project designed to analyse simulated gambling
+            behaviour in a controlled, educational environment.
           </p>
         </div>
 
         <div className="home-card">
           <h2 className="home-card__title">Personal Dashboard</h2>
           <p className="home-card__text">
-            Logged-in users can access their own performance history, risk trends,
-            and session summaries.
+            Users can track performance, profit trends, betting patterns, and behavioural
+            risk scores through interactive data visualisations.
           </p>
         </div>
 
         <div className="home-card">
-          <h2 className="home-card__title">Simulator Access</h2>
+          <h2 className="home-card__title">Blackjack Simulator</h2>
           <p className="home-card__text">
-            Once authenticated, users can play the blackjack simulator and generate
-            new session data for analysis.
+            A simplified blackjack environment allows users to generate realistic session
+            data for behavioural analysis and decision tracking.
           </p>
         </div>
       </section>
 
       <footer className="home-footer">
-        <p>Educational prototype focused on data representation and behavioural insight.</p>
+        <p>
+          Final Year Project — Wai Leung Fan (33752058)
+          <br />
+          Focus: Behavioural analytics, data visualisation, and decision modelling.
+        </p>
       </footer>
     </div>
   );

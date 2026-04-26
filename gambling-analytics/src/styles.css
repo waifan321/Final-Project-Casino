@@ -1,3 +1,13 @@
+/* =====================================================
+   PROJECT: Gambling Behaviour Analytics Dashboard
+   DESCRIPTION: Dark UI system for Home, Auth, Session,
+   Dashboard, Charts, Leaderboards and Responsive Layouts
+===================================================== */
+
+/* =====================================================
+   GLOBAL / BASE STYLES
+===================================================== */
+
 :root {
   --bg: #1e1f22;
   --panel: #2b2d31;
@@ -9,6 +19,9 @@
   --accent-hover: #4752c4;
   --danger: #da373c;
   --danger-hover: #b82f33;
+  --success: #22c55e;
+  --warning: #eab308;
+  --loss: #ef4444;
   --shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
 }
 
@@ -23,9 +36,14 @@ body {
   color: var(--text);
 }
 
-/* =========================
+button,
+input {
+  font-family: inherit;
+}
+
+/* =====================================================
    HOME PAGE
-========================= */
+===================================================== */
 
 .home-page {
   max-width: 1200px;
@@ -68,6 +86,9 @@ body {
   font-size: 14px;
   color: var(--muted);
   text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
   transition: 0.2s;
 }
 
@@ -143,7 +164,8 @@ body {
   background: rgba(255, 255, 255, 0.05);
 }
 
-.home-panel {
+.home-panel,
+.home-card {
   background: linear-gradient(180deg, var(--panel), var(--panel-2));
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -192,51 +214,22 @@ body {
   font-weight: 700;
 }
 
-.home-mini-chart {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-  height: 80px;
-  align-items: flex-end;
-}
-
-.home-mini-chart__bar {
-  flex: 1;
-  background: var(--accent);
-  border-radius: 6px;
-  height: 30%;
-}
-
-.home-mini-chart__bar--mid {
-  height: 60%;
-}
-
-.home-mini-chart__bar--tall {
-  height: 90%;
-}
-
 .home-features {
   margin-top: 60px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
-.home-card {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  padding: 20px;
-  border-radius: 14px;
+  gap: 18px;
 }
 
 .home-card__title {
   font-size: 18px;
-  margin-bottom: 8px;
+  margin: 0 0 8px;
 }
 
 .home-card__text {
   font-size: 14px;
   color: var(--muted);
+  line-height: 1.6;
 }
 
 .home-footer {
@@ -247,9 +240,173 @@ body {
   font-size: 13px;
 }
 
-/* =========================
-   SESSION PAGE
-========================= */
+.home-auth {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.home-auth__login {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.home-auth__login:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.home-auth__signup {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+  box-shadow: 0 0 12px rgba(88, 101, 242, 0.4);
+}
+
+.home-auth__signup:hover {
+  background: var(--accent-hover);
+}
+
+/* =====================================================
+   AUTH / LOGIN / SIGNUP PAGES
+===================================================== */
+
+.auth-page,
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--bg);
+}
+
+.auth-card,
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: var(--shadow);
+}
+
+.auth-back {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  margin-bottom: 12px;
+  padding: 0;
+}
+
+.auth-title,
+.login-title {
+  margin: 0 0 8px;
+  font-size: 30px;
+}
+
+.auth-subtitle,
+.login-subtitle {
+  margin: 0 0 24px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.auth-form,
+.login-form {
+  display: grid;
+  gap: 16px;
+}
+
+.auth-field label,
+.login-field label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.auth-field input,
+.login-field input {
+  width: 100%;
+  padding: 12px 14px;
+  background: #1f2023;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 15px;
+}
+
+.auth-btn,
+.login-btn {
+  border: none;
+  background: var(--accent);
+  color: white;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.auth-btn:hover,
+.login-btn:hover {
+  background: var(--accent-hover);
+}
+
+.auth-switch {
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.auth-switch button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0;
+}
+
+.auth-error,
+.login-error {
+  margin: 0;
+  color: #ff8a8a;
+  font-size: 13px;
+}
+
+.auth-success {
+  margin: 0;
+  color: var(--success);
+  font-size: 13px;
+}
+
+.app-loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 18px;
+}
+
+/* =====================================================
+   SESSION PAGE - LAYOUT
+===================================================== */
 
 .session-page {
   max-width: 1280px;
@@ -356,6 +513,10 @@ body {
   border-radius: 999px;
 }
 
+/* =====================================================
+   SESSION PAGE - GAME TABLE
+===================================================== */
+
 .session-table {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.04);
@@ -385,6 +546,7 @@ body {
 .session-cards {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .session-card {
@@ -400,11 +562,29 @@ body {
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
 
+.session-card.red {
+  color: #ef4444;
+}
+
+.session-card.black {
+  color: #111;
+}
+
+.session-card--hidden {
+  background: #232428;
+  color: var(--muted);
+  border: 1px dashed var(--line);
+}
+
 .session-table__divider {
   height: 1px;
   background: var(--line);
   margin: 24px 0;
 }
+
+/* =====================================================
+   SESSION PAGE - CONTROLS
+===================================================== */
 
 .session-controls-grid {
   display: grid;
@@ -434,7 +614,8 @@ body {
   flex-direction: column;
 }
 
-.session-button-row {
+.session-button-row,
+.session-control-footer {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
@@ -442,9 +623,6 @@ body {
 
 .session-control-footer {
   margin-top: 18px;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
 }
 
 .session-btn {
@@ -461,6 +639,11 @@ body {
 
 .session-btn:hover {
   background: #2e3036;
+}
+
+.session-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .session-btn--primary {
@@ -484,6 +667,17 @@ body {
 .session-btn--ghost {
   background: transparent;
 }
+
+.session-message {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* =====================================================
+   SESSION PAGE - METRICS & FEEDBACK
+===================================================== */
 
 .session-metric-list {
   display: grid;
@@ -530,19 +724,27 @@ body {
   color: var(--accent);
 }
 
+/* =====================================================
+   SESSION PAGE - RECENT LOG
+===================================================== */
+
 .session-log-list {
   display: grid;
   gap: 10px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 6px;
 }
 
 .session-log-item {
   display: flex;
-  gap: 12px;
+  justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 12px;
-  padding: 12px 14px;
 }
 
 .session-log-item__round {
@@ -555,60 +757,39 @@ body {
 .session-log-item__text {
   color: var(--muted);
   font-size: 14px;
+  flex: 1;
 }
 
-.session-log-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.04);
-}
-
-/* WIN */
 .session-log-item.win {
-  border-left: 4px solid #22c55e;
+  border-left: 4px solid var(--success);
 }
 
-.session-log-badge.win {
-  color: #22c55e;
-}
-
-/* LOSS */
 .session-log-item.loss {
-  border-left: 4px solid #ef4444;
+  border-left: 4px solid var(--loss);
 }
 
-.session-log-badge.loss {
-  color: #ef4444;
-}
-
-/* DRAW */
 .session-log-item.draw {
-  border-left: 4px solid #eab308;
+  border-left: 4px solid var(--warning);
 }
 
-.session-log-badge.draw {
-  color: #eab308;
-}
-
-/* Badge */
 .session-log-badge {
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.5px;
 }
 
-.session-log-list {
-  max-height: 360px;
-  overflow-y: auto;
-  padding-right: 6px;
+.session-log-badge.win {
+  color: var(--success);
 }
 
-/* Optional: nicer dark scrollbar */
+.session-log-badge.loss {
+  color: var(--loss);
+}
+
+.session-log-badge.draw {
+  color: var(--warning);
+}
+
 .session-log-list::-webkit-scrollbar {
   width: 8px;
 }
@@ -626,6 +807,10 @@ body {
 .session-log-list::-webkit-scrollbar-thumb:hover {
   background: var(--accent);
 }
+
+/* =====================================================
+   SESSION PAGE - DECK VISUAL
+===================================================== */
 
 .deck-panel {
   min-height: 220px;
@@ -718,267 +903,9 @@ body {
   transition: width 0.3s ease;
 }
 
-@media (max-width: 720px) {
-  .deck-visual {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-.session-card.red {
-  color: #ef4444; /* nice modern red */
-}
-
-.session-card.black {
-  color: #111; /* or white if dark mode */
-}
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media (max-width: 1000px) {
-  .session-layout {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 920px) {
-  .home-hero {
-    grid-template-columns: 1fr;
-  }
-
-  .home-features {
-    grid-template-columns: 1fr;
-  }
-
-  .home-hero__title {
-    font-size: 36px;
-  }
-}
-
-@media (max-width: 720px) {
-  .session-topbar {
-    flex-direction: column;
-  }
-
-  .session-controls-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .session-brand__title {
-    font-size: 22px;
-  }
-
-  .session-card {
-    width: 60px;
-    height: 84px;
-    font-size: 18px;
-  }
-
-  .home-topbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-
-  .home-nav {
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-
-  .home-hero__title {
-    font-size: 30px;
-  }
-
-  .home-hero__actions {
-    flex-wrap: wrap;
-  }
-}
-
-/* =========================
-   LOGIN PAGE
-========================= */
-
-.login-page {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: var(--bg);
-}
-
-.login-card {
-  width: 100%;
-  max-width: 420px;
-  background: linear-gradient(180deg, var(--panel), var(--panel-2));
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 28px;
-  box-shadow: var(--shadow);
-}
-
-.login-title {
-  margin: 0 0 8px;
-  font-size: 30px;
-}
-
-.login-subtitle {
-  margin: 0 0 24px;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.login-form {
-  display: grid;
-  gap: 16px;
-}
-
-.login-field label {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.login-field input {
-  width: 100%;
-  padding: 12px 14px;
-  background: #1f2023;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  color: var(--text);
-  font-size: 15px;
-}
-
-.login-error {
-  margin: 0;
-  color: #ff8a8a;
-  font-size: 13px;
-}
-
-.login-btn {
-  border: none;
-  background: var(--accent);
-  color: white;
-  border-radius: 12px;
-  padding: 12px 16px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.login-btn:hover {
-  background: var(--accent-hover);
-}
-
-.app-loading {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 18px;
-}
-
-/* =========================
-   AUTH PAGES
-========================= */
-
-.auth-page {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-}
-
-.auth-card {
-  width: 100%;
-  max-width: 420px;
-  background: linear-gradient(180deg, var(--panel), var(--panel-2));
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 28px;
-  box-shadow: var(--shadow);
-}
-
-.auth-back {
-  background: transparent;
-  border: none;
-  color: var(--muted);
-  cursor: pointer;
-  margin-bottom: 12px;
-  padding: 0;
-}
-
-.auth-title {
-  margin: 0 0 8px;
-  font-size: 30px;
-}
-
-.auth-subtitle {
-  margin: 0 0 24px;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.auth-form {
-  display: grid;
-  gap: 16px;
-}
-
-.auth-field label {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.auth-field input {
-  width: 100%;
-  padding: 12px 14px;
-  background: #1f2023;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  color: var(--text);
-  font-size: 15px;
-}
-
-.auth-btn {
-  border: none;
-  background: var(--accent);
-  color: white;
-  border-radius: 12px;
-  padding: 12px 16px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.auth-btn:hover {
-  background: var(--accent-hover);
-}
-
-.auth-switch {
-  margin-top: 18px;
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.auth-switch button {
-  background: none;
-  border: none;
-  color: var(--accent);
-  cursor: pointer;
-  font-weight: 700;
-  padding: 0;
-}
-
-/* =========================
-   DASHBOARD
-========================= */
+/* =====================================================
+   DASHBOARD - LAYOUT
+===================================================== */
 
 .dashboard-page {
   max-width: 1200px;
@@ -1060,26 +987,13 @@ body {
   font-weight: 800;
 }
 
-.dashboard-info {
-  display: grid;
-  gap: 18px;
-}
-
-.dashboard-card--wide p {
-  margin: 0;
+.dashboard-muted {
   color: var(--muted);
-  line-height: 1.6;
 }
 
-@media (max-width: 900px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard-topbar {
-    flex-direction: column;
-  }
-}
+/* =====================================================
+   DASHBOARD - CHARTS
+===================================================== */
 
 .chart-grid {
   display: grid;
@@ -1093,42 +1007,38 @@ body {
   margin-top: 12px;
 }
 
-.dashboard-value.positive,
-.leaderboard-profit.positive {
-  color: #22c55e;
-}
-
-.dashboard-value.negative,
-.leaderboard-profit.negative {
-  color: #ef4444;
-}
-
-@media (max-width: 900px) {
-  .chart-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* =========================
-   SESSION MESSAGES
-========================= */
-
-.session-message {
-  margin: 0 0 16px;
+.chart-description {
+  margin: 6px 0 14px;
   color: var(--muted);
   font-size: 14px;
   line-height: 1.5;
 }
 
-.session-card--hidden {
-  background: #232428;
-  color: var(--muted);
-  border: 1px dashed var(--line);
+.dashboard-value.positive,
+.leaderboard-profit.positive {
+  color: var(--success);
 }
 
-/* =========================
-   LEADERBOARD
-========================= */
+.dashboard-value.negative,
+.leaderboard-profit.negative {
+  color: var(--loss);
+}
+
+/* =====================================================
+   DASHBOARD - LEADERBOARD
+===================================================== */
+
+.leaderboard-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.leaderboard-subtitle {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 15px;
+}
 
 .leaderboard-list {
   display: grid;
@@ -1146,6 +1056,14 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
+.leaderboard-row.winner {
+  border-left: 4px solid var(--success);
+}
+
+.leaderboard-row.loser {
+  border-left: 4px solid var(--loss);
+}
+
 .leaderboard-rank {
   color: var(--accent);
   font-weight: 800;
@@ -1161,6 +1079,86 @@ body {
   font-weight: 800;
 }
 
-.dashboard-muted {
-  color: var(--muted);
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 1000px) {
+  .session-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 920px) {
+  .home-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .home-features {
+    grid-template-columns: 1fr;
+  }
+
+  .home-hero__title {
+    font-size: 36px;
+  }
+
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .leaderboard-split {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-topbar {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 720px) {
+  .session-topbar {
+    flex-direction: column;
+  }
+
+  .session-controls-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .session-brand__title {
+    font-size: 22px;
+  }
+
+  .session-card {
+    width: 60px;
+    height: 84px;
+    font-size: 18px;
+  }
+
+  .deck-visual {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .home-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .home-nav {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .home-hero__title {
+    font-size: 30px;
+  }
+
+  .home-hero__actions {
+    flex-wrap: wrap;
+  }
 }
